@@ -47,21 +47,23 @@ export default function LoginScreen() {
       <Text style={styles.title}>Entrar no Automoto</Text>
 
       <TextInput
-        style={styles.input}
-        placeholder="Email"
-        value={email}
-        onChangeText={setEmail}
-        keyboardType="email-address"
-        autoCapitalize="none"
-      />
+  style={styles.input}
+  placeholder="Email"
+  placeholderTextColor="#999"
+  value={email}
+  onChangeText={setEmail}
+  keyboardType="email-address"
+  autoCapitalize="none"
+/>
 
-      <TextInput
-        style={styles.input}
-        placeholder="Senha"
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-      />
+<TextInput
+  style={styles.input}
+  placeholder="Senha"
+  placeholderTextColor="#999"
+  value={password}
+  onChangeText={setPassword}
+  secureTextEntry
+/>
 
       <TouchableOpacity style={styles.button} onPress={handleLogin} disabled={loading}>
         {loading ? (
@@ -99,6 +101,7 @@ const styles = StyleSheet.create({
     padding: 12,
     marginBottom: 16,
     fontSize: 16,
+    color: '#000',
   },
   button: {
     backgroundColor: '#1A56DB',

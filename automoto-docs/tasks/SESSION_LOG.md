@@ -136,3 +136,162 @@ Testar o fluxo completo após as correções de importação.
 
 ### Próximo passo recomendado
 Testar o fluxo completo após as correções de navegação: o app deve agora redirecionar corretamente para login se não autenticado, e para cadastro de moto se autenticado mas sem moto cadastrada.
+
+---
+
+## [2026-04-11] — Sessão 7
+
+### O que foi feito
+- Corrigido problema contínuo: o app continuava indo diretamente para o mapa mesmo após as correções anteriores
+- Identificado que o problema estava no tratamento do estado de loading no `_layout.tsx`
+- Implementada nova lógica com flag `ready` para garantir que a navegação só ocorra após verificação completa
+- Adicionado componente de loading adequado durante a verificação de autenticação e moto
+
+### Decisões tomadas
+- Usar uma flag de prontidão (`ready`) para controlar quando a navegação deve ser determinada
+- Exibir um componente de loading adequado enquanto o estado de autenticação e motos está sendo verificado
+- Garantir que nenhuma navegação ocorra prematuramente antes da verificação completa
+
+### Pendências / o que não foi concluído
+- Testar o fluxo completo no dispositivo Android físico
+- Verificar salvamento dos dados no Supabase
+
+### Próximo passo recomendado
+Testar o fluxo completo após as correções: o app deve agora mostrar corretamente o loading enquanto verifica o estado e depois redirecionar adequadamente para login ou cadastro de moto conforme necessário.
+
+---
+
+## [2026-04-11] — Sessão 8
+
+### O que foi feito
+- Identificado problema fundamental: o hook `useAuth` estava considerando sessões expiradas como válidas
+- Atualizado o hook `useAuth` para validar corretamente o tempo de expiração da sessão
+- Implementada verificação do campo `expires_at` para determinar se o usuário está realmente autenticado
+- Corrigido a lógica de `isAutenticado` para considerar apenas sessões válidas e não expiradas
+
+### Decisões tomadas
+- Validar o tempo de expiração da sessão do Supabase antes de considerar o usuário como autenticado
+- Comparar `session.expires_at` com o tempo atual para determinar a validade da sessão
+- Limpar o estado de autenticação quando a sessão estiver expirada
+
+### Pendências / o que não foi concluído
+- Testar o fluxo completo no dispositivo Android físico
+- Verificar salvamento dos dados no Supabase
+
+### Próximo passo recomendado
+Testar o fluxo completo após as correções: o app deve agora verificar corretamente se o usuário está realmente autenticado (com sessão válida) antes de redirecionar para o mapa.
+
+---
+
+## [2026-04-11] — Sessão 9
+
+### O que foi feito
+- Identificado problema contínuo: o app ainda ia diretamente para o mapa mesmo após as correções anteriores
+- Descoberto que o problema estava na estrutura do Expo Router com rotas aninhadas
+- O layout `(tabs)` estava sendo renderizado e automaticamente exibindo a tela `index` (o mapa)
+- Reformulado o `_layout.tsx` para usar `Redirect` em vez de renderizar as telas do Stack
+- Implementado redirecionamento condicional baseado no estado de autenticação e moto
+
+### Decisões tomadas
+- Usar `Redirect` do Expo Router para impor o redirecionamento correto
+- Remover a renderização direta das telas do Stack e usar redirecionamento baseado em estado
+- Garantir que o redirecionamento ocorra apenas após verificação completa de autenticação e moto
+
+### Pendências / o que não foi concluído
+- Testar o fluxo completo no dispositivo Android físico
+- Verificar salvamento dos dados no Supabase
+
+### Próximo passo recomendado
+Testar o fluxo completo após as correções: o app deve agora redirecionar corretamente para login, cadastro de moto ou mapa com base no estado de autenticação e existência de moto cadastrada.
+
+---
+
+## [2026-04-11] — Sessão 10
+
+### O que foi feito
+- Revertido o arquivo `_layout.tsx` para uma versão funcional estável
+- Mantido o hook `useAuth` com a validação de expiração de sessão correta
+- Corrigido o equilíbrio entre verificação de autenticação e navegação condicional
+- Preservado o sistema de loading adequado durante verificação de estado
+
+### Decisões tomadas
+- Voltar para a abordagem de Stack com navegação condicional em vez de Redirect
+- Manter a validação de sessão expirada no hook de autenticação
+- Garantir que o sistema de loading funcione corretamente durante verificação
+
+### Pendências / o que não foi concluído
+- Testar o fluxo completo no dispositivo Android físico
+- Verificar salvamento dos dados no Supabase
+
+### Próximo passo recomendado
+Testar o fluxo completo após as correções: o app deve agora redirecionar corretamente com base no estado de autenticação e existência de moto cadastrada, com validação de sessão expirada.
+
+---
+
+## [2026-04-11] — Sessão 11
+
+### O que foi feito
+- Identificado problema crítico: a query de verificação de moto usava `head: true` incorretamente
+- Corrigido o parâmetro `head: true` que retornava `count` separadamente, fazendo `data?.count` ser sempre undefined
+- Atualizado a query para usar `select('*', { count: 'exact', head: false })` para obter o count corretamente
+- Simplificado a abordagem de navegação para não depender da renderização condicional de Stack.Screen
+
+### Decisões tomadas
+- Corrigir a query de verificação de moto para obter o count corretamente
+- Manter as rotas sempre presentes mas controlar a navegação externamente
+- Usar uma abordagem mais estável para controle de navegação com Expo Router
+
+### Pendências / o que não foi concluído
+- Testar o fluxo completo no dispositivo Android físico
+- Verificar salvamento dos dados no Supabase
+
+### Próximo passo recomendado
+Testar o fluxo completo após as correções: o app deve agora verificar corretamente a existência de moto e controlar a navegação com base no estado de autenticação.
+
+---
+
+## [2026-04-11] — Sessão 12
+
+### O que foi feito
+- Identificado problema arquitetural: dois sistemas de navegação (Expo Router em `app/` e React Navigation em `src/navigation/`) 
+- Abandonado completamente o sistema de navegação em `src/navigation/` (AuthNavigator, AppNavigator, MotoNavigator)
+- Criados arquivos de rota do Expo Router: `login.tsx`, `cadastro.tsx`, `cadastrar-moto.tsx`
+- Implementado fluxo de autenticação usando apenas Expo Router com `router.replace()` baseado no estado de autenticação
+- Atualizado `_layout.tsx` para usar efeito colateral com `router.replace()` em vez de renderização condicional
+- Telas em `src/screens/` continuam sendo usadas mas agora são importadas e reexportadas pelos arquivos em `app/`
+
+### Decisões tomadas
+- Usar apenas Expo Router para navegação (padrão de arquivos em `app/`)
+- Controlar navegação com `router.replace()` baseado no estado de autenticação e existência de moto
+- Manter as telas existentes em `src/screens/` como componentes reutilizáveis
+- Abandonar totalmente o sistema de navegação em `src/navigation/`
+
+### Pendências / o que não foi concluído
+- Testar o fluxo completo no dispositivo Android físico
+- Verificar salvamento dos dados no Supabase
+
+### Próximo passo recomendado
+Testar o fluxo completo após a reestruturação arquitetural: o app deve agora controlar a navegação corretamente com base no estado de autenticação usando apenas o Expo Router.
+
+## [2026-04-11] — Sessão 13
+
+### O que foi feito
+- Corrigido `SplashScreen` usado incorretamente como componente JSX — substituído por `ActivityIndicator`
+- Corrigido `app/(tabs)/index.tsx` que tinha lógica duplicada de auth e verificação de moto — removido, responsabilidade centralizada no `_layout.tsx`
+- Adicionado `placeholderTextColor` e `color: '#000'` em todos os `TextInput` das telas de Login, Cadastro e CadastrarMoto
+- Corrigido `handlePlacaChange` no `CadastrarMoto` que chamava `setValue` diretamente em vez do `onChange` do Controller
+- Instaladas dependências faltantes: `zod`, `react-hook-form`, `@hookform/resolvers`
+- Fluxo completo testado e funcionando: login → cadastro de moto → mapa
+
+### Decisões tomadas
+- Lógica de auth e verificação de moto centralizada exclusivamente no `_layout.tsx`
+- Telas de conteúdo (mapa, cadastro) não fazem mais redirect — apenas renderizam
+- `src/navigation/` mantido no projeto mas completamente depreciado e não utilizado
+
+### Pendências / o que não foi concluído
+- Erros de tipagem TypeScript do MapLibre no VSCode (não afetam o funcionamento)
+- Verificar salvamento dos dados no Supabase pelo painel
+- Testar logout e reentrada no app
+
+### Próximo passo recomendado
+Verificar no painel do Supabase se os dados de usuário e moto estão sendo salvos corretamente. Depois avançar para o próximo item do roadmap: Fase 1 item 5 — Radar: alertas da via.

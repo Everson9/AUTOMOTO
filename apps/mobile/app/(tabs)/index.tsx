@@ -1,12 +1,12 @@
 import MapLibreGL from '@maplibre/maplibre-react-native';
-import { View, StyleSheet, Text, PermissionsAndroid, Platform, Alert, ActivityIndicator } from 'react-native';
-import { useEffect, useState, useRef } from 'react';
+import { View, StyleSheet, Text, ActivityIndicator, Alert } from 'react-native';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import * as Location from 'expo-location';
-import { useRouter } from 'expo-router';
+import { useMapa, TipoAlerta } from '../../src/screens/Mapa/useMapa';
+import { BotaoAlerta } from '../../src/components/BotaoAlerta';
+import { SheetAlerta, SheetAlertaRef } from '../../src/components/SheetAlerta';
 import { useAuthContext } from '../../src/hooks/AuthProvider';
-import { supabase } from '../../src/lib/supabase';
 
-// Configurar URL de acesso (não necessário para MapLibre)
 MapLibreGL.setAccessToken(null);
 
 const STYLE_URL = 'https://tiles.openfreemap.org/styles/liberty';
@@ -15,65 +15,77 @@ export default function HomeScreen() {
   const [location, setLocation] = useState<Location.LocationObject | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [locationPermission, setLocationPermission] = useState<'granted' | 'denied' | 'undetermined'>('undetermined');
-  const [checkingMoto, setCheckingMoto] = useState(true);
+  const [loading, setLoading] = useState(true);
+  const [showSheet, setShowSheet] = useState(false);
 
   const mapRef = useRef<MapLibreGL.MapView>(null);
   const cameraRef = useRef<MapLibreGL.Camera>(null);
-  const router = useRouter();
-  const { user, isAutenticado, isLoading } = useAuthContext();
+  const sheetRef = useRef<SheetAlertaRef>(null);
+
+  const { alertas, isLoading: alertasLoading, erro: alertasErro, reportarAlerta } = useMapa(location);
+
+  const { user } = useAuthContext();
 
   useEffect(() => {
-    const initializeApp = async () => {
-      if (isAutenticado && user) {
-        // Verificar se o usuário tem moto cadastrada
-        const { data, error } = await supabase
-          .from('motos')
-          .select('id', { count: 'exact', head: true })
-          .eq('user_id', user.id);
+    const requestLocationPermission = async () => {
+      try {
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        setLocationPermission(status);
 
-        const hasMoto = (data?.count ?? 0) > 0;
-
-        if (!hasMoto) {
-          // Se não tiver moto cadastrada, redirecionar para cadastro
-          router.replace('/cadastrar-moto');
+        if (status !== 'granted') {
+          setErrorMsg('Permissão de localização negada');
           return;
         }
+
+        const currentLocation = await Location.getCurrentPositionAsync({
+          accuracy: Location.Accuracy.High,
+        });
+        setLocation(currentLocation);
+      } catch (error) {
+        setErrorMsg(`Erro ao obter localização: ${error}`);
+      } finally {
+        setLoading(false);
       }
-
-      setCheckingMoto(false);
-
-      // Continuar com a lógica de localização
-      const requestLocationPermission = async () => {
-        try {
-          // Solicitar permissão de localização
-          let { status } = await Location.requestForegroundPermissionsAsync();
-          setLocationPermission(status);
-
-          if (status !== 'granted') {
-            setErrorMsg('Permissão de localização negada');
-            return;
-          }
-
-          // Obter localização atual
-          let currentLocation = await Location.getCurrentPositionAsync({
-            accuracy: Location.Accuracy.High,
-          });
-          setLocation(currentLocation);
-        } catch (error) {
-          setErrorMsg(`Erro ao obter localização: ${error}`);
-        }
-      };
-
-      requestLocationPermission();
     };
 
-    if (!isLoading) {
-      initializeApp();
-    }
-  }, [isAutenticado, user, isLoading, router]);
+    requestLocationPermission();
+  }, []);
 
-  // Mostrar loading enquanto verifica se o usuário tem moto
-  if (checkingMoto || isLoading) {
+  const handleReportarAlerta = useCallback(() => {
+    if (!user) {
+      Alert.alert('Erro', 'Você precisa estar logado para reportar alertas.');
+      return;
+    }
+
+    if (!location) {
+      Alert.alert('Erro', 'Localização não disponível. Aguarde um momento e tente novamente.');
+      return;
+    }
+
+    setShowSheet(true);
+    setTimeout(() => {
+      sheetRef.current?.expand();
+    }, 100);
+  }, [user, location]);
+
+  const handleSelectTipoAlerta = useCallback(async (tipo: TipoAlerta) => {
+    try {
+      await reportarAlerta(tipo);
+      Alert.alert('Sucesso', 'Alerta reportado com sucesso!');
+      sheetRef.current?.close();
+      setShowSheet(false);
+    } catch (error: any) {
+      console.error('[handleSelectTipoAlerta]', error);
+      Alert.alert('Erro', error.message || 'Erro ao reportar alerta');
+    }
+  }, [reportarAlerta]);
+
+  const handleCloseSheet = useCallback(() => {
+    sheetRef.current?.close();
+    setShowSheet(false);
+  }, []);
+
+  if (loading) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#1A56DB" />
@@ -99,7 +111,7 @@ export default function HomeScreen() {
           centerCoordinate={
             location
               ? [location.coords.longitude, location.coords.latitude]
-              : [-43.172896, -22.906847] // Coordenadas padrão (Rio de Janeiro)
+              : [-43.172896, -22.906847]
           }
           animationMode="flyTo"
           animationDuration={2000}
@@ -108,10 +120,7 @@ export default function HomeScreen() {
         {location && (
           <MapLibreGL.PointAnnotation
             id="current-location-pin"
-            coordinate={[
-              location.coords.longitude,
-              location.coords.latitude
-            ]}
+            coordinate={[location.coords.longitude, location.coords.latitude]}
           >
             <View style={styles.pin}>
               <Text style={styles.pinText}>📍</Text>
@@ -119,7 +128,40 @@ export default function HomeScreen() {
           </MapLibreGL.PointAnnotation>
         )}
 
-        {/* Camada de localização do usuário */}
+        {/* Camada de alertas no mapa */}
+        {alertas.length > 0 && (
+          <MapLibreGL.ShapeSource id="alertas-source" shape={{
+            type: 'FeatureCollection',
+            features: alertas.map(alerta => ({
+              type: 'Feature',
+              id: alerta.id,
+              geometry: {
+                type: 'Point',
+                coordinates: [alerta.lng, alerta.lat],
+              },
+              properties: {
+                id: alerta.id,
+                tipo: alerta.tipo,
+                confirmacoes: alerta.confirmacoes,
+              },
+            })),
+          }}>
+            <MapLibreGL.SymbolLayer
+              id="alertas-layer"
+              style={{
+                iconImage: ['get', 'tipo'],
+                iconSize: 1.0,
+                iconAllowOverlap: true,
+                iconIgnorePlacement: true,
+                textField: ['get', 'confirmacoes'],
+                textSize: 12,
+                textOffset: [0, 0.8],
+                textAnchor: 'top',
+              }}
+            />
+          </MapLibreGL.ShapeSource>
+        )}
+
         {locationPermission === 'granted' && (
           <MapLibreGL.UserLocation
             visible
@@ -129,9 +171,20 @@ export default function HomeScreen() {
         )}
       </MapLibreGL.MapView>
 
-      {errorMsg && (
+      {/* Botão flutuante para reportar alerta */}
+      <BotaoAlerta onPress={handleReportarAlerta} />
+
+      {showSheet && (
+        <SheetAlerta
+          ref={sheetRef}
+          onSelectTipo={handleSelectTipoAlerta}
+          onClose={handleCloseSheet}
+        />
+      )}
+
+      {(alertasErro || errorMsg) && (
         <View style={styles.errorMessage}>
-          <Text>{errorMsg}</Text>
+          <Text>{alertasErro || errorMsg}</Text>
         </View>
       )}
     </View>
@@ -139,12 +192,8 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  map: {
-    flex: 1,
-  },
+  container: { flex: 1 },
+  map: { flex: 1 },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -159,16 +208,11 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     elevation: 5,
     shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
   },
-  pinText: {
-    fontSize: 20,
-  },
+  pinText: { fontSize: 20 },
   errorMessage: {
     position: 'absolute',
     top: 50,

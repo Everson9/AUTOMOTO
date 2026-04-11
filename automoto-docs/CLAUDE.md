@@ -54,7 +54,7 @@ packages/config/    → ESLint, TSConfig
 | Módulo SOS e Oficinas         | `docs/modules/MODULE_SOS.md`                   |
 | Gamificação e ranking         | `docs/modules/MODULE_GAMIFICACAO.md`           |
 | Monetização B2C e B2B         | `docs/business/MONETIZACAO.md`                 |
-
+| Navegação e autenticação      | `docs/architecture/EXPO_ROUTER_GUIDE.md`       |
 ---
 
 ## Regras que sempre se aplicam
@@ -65,7 +65,10 @@ packages/config/    → ESLint, TSConfig
 4. **Cada componente tem responsabilidade única** — se ficou grande, dividir
 5. **Supabase RLS sempre ativo** — nenhuma tabela sem política de segurança
 6. **Nunca commitar secrets** — tudo em `.env.local`, nunca no repositório
-
+7. **Antes de qualquer navegação** → ler `docs/architecture/EXPO_ROUTER_GUIDE.md`
+8. **Antes de qualquer auth** → ler `docs/architecture/AUTH_GUIDE.md`
+9. **Antes de criar qualquer arquivo** → verificar se já existe algo similar em `src/screens/`, `src/hooks/` ou `app/`
+10. **Nunca criar um segundo sistema para algo que já existe** — checar `docs/architecture/DECISIONS.md` antes
 ---
 
 ## Comandos mais usados

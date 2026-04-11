@@ -57,29 +57,32 @@ export default function CadastroScreen() {
       <Text style={styles.title}>Criar Conta</Text>
 
       <TextInput
-        style={styles.input}
-        placeholder="Nome"
-        value={nome}
-        onChangeText={setNome}
-        autoCapitalize="words"
-      />
+  style={styles.input}
+  placeholder="Nome"
+  placeholderTextColor="#999"
+  value={nome}
+  onChangeText={setNome}
+  autoCapitalize="words"
+/>
 
-      <TextInput
-        style={styles.input}
-        placeholder="Email"
-        value={email}
-        onChangeText={setEmail}
-        keyboardType="email-address"
-        autoCapitalize="none"
-      />
+<TextInput
+  style={styles.input}
+  placeholder="Email"
+  placeholderTextColor="#999"
+  value={email}
+  onChangeText={setEmail}
+  keyboardType="email-address"
+  autoCapitalize="none"
+/>
 
-      <TextInput
-        style={styles.input}
-        placeholder="Senha (mínimo 6 caracteres)"
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-      />
+<TextInput
+  style={styles.input}
+  placeholder="Senha (mínimo 6 caracteres)"
+  placeholderTextColor="#999"
+  value={password}
+  onChangeText={setPassword}
+  secureTextEntry
+/>
 
       <TouchableOpacity style={styles.button} onPress={handleSignUp} disabled={loading}>
         {loading ? (
@@ -117,6 +120,7 @@ const styles = StyleSheet.create({
     padding: 12,
     marginBottom: 16,
     fontSize: 16,
+    color: '#000',
   },
   button: {
     backgroundColor: '#1A56DB',

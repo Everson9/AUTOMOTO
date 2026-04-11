@@ -7,12 +7,11 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { supabase } from '../../lib/supabase';
 import { useAuthContext } from '../../hooks/AuthProvider';
 
-// Esquema de validação com Zod - seguindo padrão do SKILLS.md seção 9
 const schemaCadastroMoto = z.object({
-  placa: z.string().length(7, 'Placa inválida').regex(/^[A-Z]{3}[0-9][A-Z0-9][0-9]{2}$/, 'Formato inválido'),
+  placa: z.string().length(7, 'Placa deve ter 7 caracteres').regex(/^[A-Z]{3}[0-9][A-Z0-9][0-9]{2}$/, 'Formato inválido. Ex: ABC1D23'),
   modelo: z.string().min(2, 'Modelo obrigatório').max(100),
-  ano: z.number().min(1970).max(new Date().getFullYear() + 1),
-  km_atual: z.number().min(0).max(9999999),
+  ano: z.number().min(1970, 'Ano inválido').max(new Date().getFullYear() + 1, 'Ano inválido'),
+  km_atual: z.number().min(0, 'KM inválido').max(9999999, 'KM inválido'),
 });
 
 type FormData = z.infer<typeof schemaCadastroMoto>;
@@ -22,7 +21,7 @@ export default function CadastrarMotoScreen() {
   const router = useRouter();
   const { user } = useAuthContext();
 
-  const { control, handleSubmit, formState: { errors }, setValue } = useForm<FormData>({
+  const { control, handleSubmit, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schemaCadastroMoto),
     defaultValues: {
       placa: '',
@@ -40,22 +39,20 @@ export default function CadastrarMotoScreen() {
 
     setLoading(true);
     try {
-      // Salvar no Supabase - seguindo padrão do SKILLS.md seção 3
-      const { data: motoData, error } = await supabase
+      const { error } = await supabase
         .from('motos')
         .insert([{
           user_id: user.id,
-          placa: data.placa.toUpperCase(), // garantir formato correto
+          placa: data.placa.toUpperCase(),
           modelo: data.modelo,
           ano: data.ano,
           km_atual: data.km_atual,
-          ativa: true, // Define esta moto como ativa
+          ativa: true,
         }])
         .select()
         .single();
 
       if (error) {
-        // Segundo padrão do SKILLS.md seção 10
         console.error('[cadastrarMoto]', error);
         throw new Error(error.message);
       }
@@ -64,18 +61,11 @@ export default function CadastrarMotoScreen() {
         { text: 'OK', onPress: () => router.replace('/(tabs)') }
       ]);
     } catch (err: any) {
-      // Segundo padrão do SKILLS.md seção 10
       console.error('[cadastrarMoto]', err);
       Alert.alert('Erro', err.message || 'Erro ao cadastrar moto');
     } finally {
       setLoading(false);
     }
-  };
-
-  const handlePlacaChange = (text: string) => {
-    // Permitir apenas letras e números, converter para maiúsculas
-    const formatted = text.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
-    setValue('placa', formatted, { shouldValidate: true });
   };
 
   return (
@@ -91,9 +81,10 @@ export default function CadastrarMotoScreen() {
             <TextInput
               style={styles.input}
               placeholder="Ex: ABC1D23"
+              placeholderTextColor="#999"
               value={value}
-              onChangeText={handlePlacaChange}
-              maxLength={8}
+              onChangeText={(text) => onChange(text.replace(/[^A-Za-z0-9]/g, '').toUpperCase())}
+              maxLength={7}
               autoCapitalize="characters"
             />
             {errors.placa && <Text style={styles.error}>{errors.placa.message}</Text>}
@@ -110,6 +101,7 @@ export default function CadastrarMotoScreen() {
             <TextInput
               style={styles.input}
               placeholder="Ex: CG 160 Titan"
+              placeholderTextColor="#999"
               value={value}
               onChangeText={onChange}
               autoCapitalize="words"
@@ -128,8 +120,9 @@ export default function CadastrarMotoScreen() {
             <TextInput
               style={styles.input}
               placeholder="Ex: 2023"
+              placeholderTextColor="#999"
               value={value?.toString()}
-              onChangeText={(text) => onChange(text ? parseInt(text) : null)}
+              onChangeText={(text) => onChange(text ? parseInt(text) : 0)}
               keyboardType="numeric"
               maxLength={4}
             />
@@ -147,6 +140,7 @@ export default function CadastrarMotoScreen() {
             <TextInput
               style={styles.input}
               placeholder="Ex: 12000"
+              placeholderTextColor="#999"
               value={value?.toString()}
               onChangeText={(text) => onChange(text ? parseInt(text) || 0 : 0)}
               keyboardType="numeric"
@@ -196,6 +190,7 @@ const styles = StyleSheet.create({
     padding: 12,
     fontSize: 16,
     backgroundColor: '#f9f9f9',
+    color: '#000',
   },
   error: {
     color: '#e74c3c',

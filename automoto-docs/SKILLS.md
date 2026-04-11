@@ -733,6 +733,91 @@ function tratarErroSupabase(error: PostgrestError): string {
 
 > Estas são as regras para trabalhar com Claude Code neste projeto de forma eficiente.
 
+## 12. Skill: Bottom Sheet
+
+### Pacote padrão do projeto
+`@gorhom/bottom-sheet`
+
+### Instalação
+```bash
+npx expo install @gorhom/bottom-sheet react-native-reanimated react-native-gesture-handler
+```
+
+### Estrutura obrigatória
+```tsx
+import BottomSheet, { BottomSheetView } from '@gorhom/bottom-sheet'
+import { useRef, useCallback } from 'react'
+
+const bottomSheetRef = useRef<BottomSheet>(null)
+const snapPoints = ['25%', '50%']
+
+const handleOpen = useCallback(() => {
+  bottomSheetRef.current?.expand()
+}, [])
+
+const handleClose = useCallback(() => {
+  bottomSheetRef.current?.close()
+}, [])
+
+return (
+  <BottomSheet ref={bottomSheetRef} index={-1} snapPoints={snapPoints}>
+    <BottomSheetView>
+      {/* conteúdo */}
+    </BottomSheetView>
+  </BottomSheet>
+)
+```
+
+### Regras
+- Sempre `index={-1}` para começar fechado
+- Nunca usar Modal do React Native para isso
+- Sempre fazer cleanup no unmount
+
+---
+
+## 13. Skill: Pontos no Mapa (PointAnnotation vs ShapeSource)
+
+### Regra de escolha
+- **Menos de 50 pontos** → `PointAnnotation` (mais simples)
+- **50+ pontos ou heatmap** → `ShapeSource` + `SymbolLayer` com GeoJSON
+
+### Menos de 50 pontos — PointAnnotation
+```tsx
+{alertas.map((alerta) => (
+  <MapLibreGL.PointAnnotation
+    key={alerta.id}
+    id={alerta.id}
+    coordinate={[alerta.longitude, alerta.latitude]}
+  >
+    <View style={styles.marker}>
+      <Text>{alerta.icone}</Text>
+    </View>
+  </MapLibreGL.PointAnnotation>
+))}
+```
+
+### 50+ pontos — ShapeSource + SymbolLayer
+```tsx
+const geojson = {
+  type: 'FeatureCollection',
+  features: alertas.map((a) => ({
+    type: 'Feature',
+    geometry: { type: 'Point', coordinates: [a.longitude, a.latitude] },
+    properties: { categoria: a.categoria },
+  }))
+}
+
+<MapLibreGL.ShapeSource id="alertas" shape={geojson}>
+  <MapLibreGL.SymbolLayer id="alertas-icons" style={{ iconSize: 1.5 }} />
+</MapLibreGL.ShapeSource>
+```
+
+### Regras
+- Nunca misturar os dois sistemas para o mesmo conjunto de dados
+- `id` do `PointAnnotation` deve ser único — usar o `id` do banco
+- Coordenadas sempre no formato `[longitude, latitude]` — nessa ordem
+
+
 ### Regra 1: Carregue apenas o contexto necessário
 
 **Antes de pedir código**, identifique:

@@ -2,15 +2,14 @@
 
 > Atualizar este arquivo antes de cada sessão de desenvolvimento.
 > A IA lê APENAS este arquivo + os arquivos listados em "Contexto necessário".
-> Não deixar contexto desnecessário aqui — mantém o custo de token baixo.
 
 ---
 
 ## Tarefa atual
 
-**O que:** Implementar o fluxo completo: login → cadastro de moto → visualização no mapa
+**O que:** Implementar o Radar da Via — reportar e visualizar alertas no mapa
 
-**Módulo:** Autenticação e Garagem Virtual
+**Módulo:** Radar
 
 **Fase do roadmap:** Fase 1 — MVP Core
 
@@ -18,58 +17,58 @@
 
 ## Critério de pronto
 
-- [ ] Fluxo completo: abrir app → login → cadastrar moto → ver mapa
-- [ ] Dados salvos no Supabase (verificar no painel)
+- [ ] Botão flutuante no mapa para reportar alerta
+- [ ] Bottom sheet com categorias: óleo na pista, areia em curva, buraco, obra, enchente
+- [ ] Alerta salvo no Supabase com coordenada GPS + categoria + user_id + timestamp
+- [ ] Alertas próximos carregados do Supabase e exibidos no mapa como ícones
+- [ ] Expiração automática por categoria conforme tabela do MODULE_RADAR.md
 - [ ] Testado no Android físico
-- [ ] Tipos TypeScript sem erros
 
 ---
 
 ## Arquivos que serão criados ou modificados
-
-```
-apps/mobile/src/screens/Login/index.tsx             → criar
-apps/mobile/src/screens/Cadastro/index.tsx          → criar
-apps/mobile/src/screens/CadastrarMoto/index.tsx     → criar
-apps/mobile/src/hooks/useAuth.ts                    → criar
-apps/mobile/src/navigation/AuthNavigator.tsx        → criar
-apps/mobile/src/navigation/AppNavigator.tsx         → criar
-apps/mobile/src/navigation/types.ts                 → criar
-apps/mobile/src/lib/supabase.ts                     → modificar (adicionar listener de auth)
-apps/mobile/app/_layout.tsx                         → modificar (adicionar navegação condicional)
-```
+apps/mobile/src/screens/Mapa/index.tsx         → modificar (adicionar botão + camada de alertas)
+apps/mobile/src/screens/Mapa/useMapa.ts        → criar (lógica extraída)
+apps/mobile/src/components/BotaoAlerta/        → criar (botão flutuante)
+apps/mobile/src/components/SheetAlerta/        → criar (bottom sheet de categorias)
+supabase/migrations/XXXX_create_alertas.sql    → criar (tabela alertas_via)
 
 ---
 
 ## Contexto necessário
 
-> A IA deve ler APENAS estes arquivos além deste:
-
-- [x] `SKILLS.md` → padrões de código (seções 2, 3, 9)
-- [x] `docs/modules/MODULE_GARAGEM.md` → spec da feature
-- [x] `docs/database/SCHEMA.md#tabela-motos` → schema da tabela envolvida
-- [x] `docs/architecture/AUTH_GUIDE.md` → guia de autenticação
-
----
-
-## Decisões já tomadas para esta tarefa
-
-- Usar estrutura de navegação por stacks (AuthStack e AppStack)
-- Seguir padrão de screens do SKILLS.md seção 2
-- Implementar validação de formulários com Zod conforme SKILLS.md seção 9
+- [ ] `SKILLS.md` → seções 1, 2, 3
+- [ ] `docs/modules/MODULE_RADAR.md` → spec completa do Radar
+- [ ] `docs/database/SCHEMA.md` → schema da tabela alertas_via
+- [ ] `docs/architecture/MAPLIBRE_GUIDE.md` → como adicionar camadas no mapa
+- [ ] `docs/architecture/EXPO_ROUTER_GUIDE.md` → regras de navegação
 
 ---
 
-## Bloqueios / dúvidas
+## Decisões já tomadas
 
-- Nenhum bloqueio identificado
+- Expo Router exclusivamente para navegação
+- Lógica de auth centralizada no `_layout.tsx`
+- Telas complexas em `src/screens/`, arquivos em `app/` são só wrappers
 
 ---
 
 ## Histórico de tarefas concluídas
 
-_Mover a tarefa atual para cá quando concluir, com data e resumo._
+| Data     | Tarefa                                           | Arquivos principais                        |
+|----------|--------------------------------------------------|--------------------------------------------|
+| 11/04/26 | Setup monorepo + Expo + MapLibre                 | apps/mobile/                               |
+| 11/04/26 | Auth por email + cadastro de moto + mapa básico  | app/_layout.tsx, src/screens/Login, Cadastro, CadastrarMoto |
 
-| Data       | Tarefa                                      | Arquivos principais             |
-|------------|---------------------------------------------|---------------------------------|
-| 11/04/26 | Implementação do mapa básico com localização | app/(tabs)/index.tsx            |
+Prompt pra primeira sessão do Radar:
+Leia os seguintes arquivos antes de começar:
+- tasks/CURRENT_TASK.md
+- docs/modules/MODULE_RADAR.md
+- docs/database/SCHEMA.md (seção alertas_via)
+- docs/architecture/MAPLIBRE_GUIDE.md
+- docs/architecture/EXPO_ROUTER_GUIDE.md
+- SKILLS.md (seções 1, 2, 3)
+
+Após ler, me mostre o que entendeu da tarefa e proponha
+a ordem de implementação antes de escrever qualquer código.
+Aguarde minha confirmação antes de começar.
