@@ -1,0 +1,25 @@
+# Automoto — Regras para IA no editor
+
+## Contexto mínimo por sessão
+1. Leia CLAUDE.md (já no contexto automático)
+2. Leia tasks/CURRENT_TASK.md para saber o que está sendo feito
+3. Leia APENAS os arquivos listados em "Contexto necessário" da tarefa atual
+4. Peça permissão antes de ler arquivos adicionais
+
+## Padrões obrigatórios
+- Toda nova tela: seguir Skill 2 de SKILLS.md
+- Toda query Supabase: seguir Skill 3 de SKILLS.md
+- Toda layer de mapa: seguir Skill 4 de SKILLS.md
+- Todo formulário: seguir Skill 9 de SKILLS.md
+- Toda migração: seguir Skill 7 de SKILLS.md
+
+## Nunca fazer sem perguntar
+- Adicionar uma nova dependência npm
+- Mudar a estrutura de uma tabela existente
+- Alterar políticas de RLS
+- Criar arquivos fora da estrutura definida em OVERVIEW.md
+
+## Idioma
+- Código de domínio: português (nomes de variáveis, comentários de negócio)
+- Padrões técnicos: inglês (hooks, utils genéricos)
+- Commits: inglês (Conventional Commits)
