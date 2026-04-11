@@ -8,9 +8,9 @@
 
 ## Tarefa atual
 
-**O que:** _[Uma frase descrevendo a entrega exata]_
+**O que:** Implementar o fluxo completo: login → cadastro de moto → visualização no mapa
 
-**Módulo:** _[Ex: Garagem Virtual / Radar da Rua / etc.]_
+**Módulo:** Autenticação e Garagem Virtual
 
 **Fase do roadmap:** Fase 1 — MVP Core
 
@@ -18,19 +18,25 @@
 
 ## Critério de pronto
 
-- [ ] _[Comportamento 1 que precisa funcionar]_
-- [ ] _[Comportamento 2]_
-- [ ] _[Tipos TypeScript sem erros]_
-- [ ] _[Testado no Android físico]_
+- [ ] Fluxo completo: abrir app → login → cadastrar moto → ver mapa
+- [ ] Dados salvos no Supabase (verificar no painel)
+- [ ] Testado no Android físico
+- [ ] Tipos TypeScript sem erros
 
 ---
 
 ## Arquivos que serão criados ou modificados
 
 ```
-apps/mobile/src/screens/NomeDaTela/index.tsx        → criar
-apps/mobile/src/screens/NomeDaTela/useNomeDaTela.ts → criar
-apps/mobile/src/navigation/types.ts                 → modificar (adicionar rota)
+apps/mobile/src/screens/Login/index.tsx             → criar
+apps/mobile/src/screens/Cadastro/index.tsx          → criar
+apps/mobile/src/screens/CadastrarMoto/index.tsx     → criar
+apps/mobile/src/hooks/useAuth.ts                    → criar
+apps/mobile/src/navigation/AuthNavigator.tsx        → criar
+apps/mobile/src/navigation/AppNavigator.tsx         → criar
+apps/mobile/src/navigation/types.ts                 → criar
+apps/mobile/src/lib/supabase.ts                     → modificar (adicionar listener de auth)
+apps/mobile/app/_layout.tsx                         → modificar (adicionar navegação condicional)
 ```
 
 ---
@@ -39,23 +45,24 @@ apps/mobile/src/navigation/types.ts                 → modificar (adicionar rot
 
 > A IA deve ler APENAS estes arquivos além deste:
 
-- [ ] `SKILLS.md` → padrões de código (seções X e Y)
-- [ ] `docs/modules/MODULE_[nome].md` → spec da feature
-- [ ] `docs/database/SCHEMA.md#tabela-[nome]` → schema da tabela envolvida
+- [x] `SKILLS.md` → padrões de código (seções 2, 3, 9)
+- [x] `docs/modules/MODULE_GARAGEM.md` → spec da feature
+- [x] `docs/database/SCHEMA.md#tabela-motos` → schema da tabela envolvida
+- [x] `docs/architecture/AUTH_GUIDE.md` → guia de autenticação
 
 ---
 
 ## Decisões já tomadas para esta tarefa
 
-_[Liste aqui qualquer decisão que não deve ser questionada pela IA]_
-
-Ex: "Usar FlatList, não ScrollView. Já testado e definido."
+- Usar estrutura de navegação por stacks (AuthStack e AppStack)
+- Seguir padrão de screens do SKILLS.md seção 2
+- Implementar validação de formulários com Zod conforme SKILLS.md seção 9
 
 ---
 
 ## Bloqueios / dúvidas
 
-_[O que ainda não está claro e precisa ser resolvido antes de codar]_
+- Nenhum bloqueio identificado
 
 ---
 
@@ -65,4 +72,4 @@ _Mover a tarefa atual para cá quando concluir, com data e resumo._
 
 | Data       | Tarefa                                      | Arquivos principais             |
 |------------|---------------------------------------------|---------------------------------|
-| _dd/mm/aa_ | _Descrição_                                 | _arquivo1.tsx, arquivo2.ts_     |
+| 11/04/26 | Implementação do mapa básico com localização | app/(tabs)/index.tsx            |

@@ -3,7 +3,9 @@
     "allow": [
       "Bash(npx create-expo-app:*)",
       "Bash(npx expo:*)",
-      "Bash(npm install:*)"
+      "Bash(npm install:*)",
+      "Bash(dir:*)",
+      "Bash(findstr /S /I \"AUTH\" \"automoto-docs\\\\docs\\\\architecture\\\\*.md\")"
     ]
   }
 }

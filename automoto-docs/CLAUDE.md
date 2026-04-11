@@ -38,18 +38,22 @@ packages/config/    → ESLint, TSConfig
 
 ## Onde está cada coisa
 
-| Preciso saber sobre...        | Leia este arquivo                          |
-|-------------------------------|--------------------------------------------|
-| Arquitetura geral             | `docs/architecture/OVERVIEW.md`            |
-| Uma feature específica        | `docs/modules/MODULE_[nome].md`            |
-| Schema do banco               | `docs/database/SCHEMA.md`                  |
-| Convenções de código          | `docs/architecture/CONVENTIONS.md`         |
-| Roadmap e fases               | `docs/ROADMAP.md`                          |
-| Tarefa atual em andamento     | `tasks/CURRENT_TASK.md`                    |
-| Decisões já tomadas           | `docs/architecture/DECISIONS.md`           |
-| Padrões de componentes        | `docs/architecture/COMPONENT_PATTERNS.md`  |
-| Integração com Supabase       | `docs/architecture/SUPABASE_GUIDE.md`      |
-| Integração com MapLibre       | `docs/architecture/MAPLIBRE_GUIDE.md`      |
+| Preciso saber sobre...        | Leia este arquivo                              |
+|-------------------------------|------------------------------------------------|
+| Arquitetura geral             | `docs/architecture/OVERVIEW.md`                |
+| Uma feature específica        | `docs/modules/MODULE_[nome].md`                |
+| Schema do banco               | `docs/database/SCHEMA.md`                      |
+| Convenções de código          | `docs/architecture/CONVENTIONS.md`             |
+| Roadmap e fases               | `docs/ROADMAP.md`                              |
+| Tarefa atual em andamento     | `tasks/CURRENT_TASK.md`                        |
+| Decisões já tomadas           | `docs/architecture/DECISIONS.md`               |
+| Padrões de componentes        | `docs/architecture/COMPONENT_PATTERNS.md`      |
+| Integração com Supabase       | `docs/architecture/SUPABASE_GUIDE.md`          |
+| Integração com MapLibre       | `docs/architecture/MAPLIBRE_GUIDE.md`          |
+| Autenticação (login/sessão)   | `docs/architecture/AUTH_GUIDE.md`              |
+| Módulo SOS e Oficinas         | `docs/modules/MODULE_SOS.md`                   |
+| Gamificação e ranking         | `docs/modules/MODULE_GAMIFICACAO.md`           |
+| Monetização B2C e B2B         | `docs/business/MONETIZACAO.md`                 |
 
 ---
 
@@ -94,4 +98,4 @@ Antes de começar qualquer tarefa, leia:
 
 ---
 
-*Atualizado em: 2025 | Versão do doc: 1.0*
+*Atualizado em: 2026 | Versão do doc: 1.1*
