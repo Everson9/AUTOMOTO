@@ -40,7 +40,7 @@ export const SheetAlerta = forwardRef<SheetAlertaRef, SheetAlertaProps>(
       { key: 'buraco', label: 'Buraco', icon: 'waves', color: '#EF4444' },
       { key: 'obra', label: 'Obra', icon: 'construction', color: '#8B5CF6' },
       { key: 'enchente', label: 'Enchente', icon: 'water', color: '#3B82F6' },
-      { key: 'acidente', label: 'Acidente', icon: 'accident', color: '#EC4899' },
+      { key: 'acidente', label: 'Acidente', icon: 'car-crash', color: '#EC4899' },
       { key: 'outro', label: 'Outro', icon: 'help-outline', color: '#6B7280' },
     ];
 

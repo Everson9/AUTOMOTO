@@ -1,10 +1,7 @@
-import MapLibreGL from '@maplibre/maplibre-react-native';
+import { Map, Camera, PointAnnotation } from '@maplibre/maplibre-react-native';
 import { View, StyleSheet, Text, PermissionsAndroid, Platform } from 'react-native';
 import { useEffect, useState } from 'react';
 import * as Location from 'expo-location';
-
-// Configurar URL de acesso (não necessário para MapLibre)
-MapLibreGL.setAccessToken(null);
 
 const STYLE_URL = 'https://tiles.openfreemap.org/styles/liberty';
 
@@ -37,14 +34,14 @@ export default function MapaScreen() {
 
   return (
     <View style={styles.container}>
-      <MapLibreGL.MapView
+      <Map
         style={styles.map}
         styleURL={STYLE_URL}
         compassEnabled
         logoEnabled={false}
         attributionEnabled={false}
       >
-        <MapLibreGL.Camera
+        <Camera
           zoomLevel={14}
           centerCoordinate={
             location
@@ -56,7 +53,7 @@ export default function MapaScreen() {
         />
 
         {location && (
-          <MapLibreGL.PointAnnotation
+          <PointAnnotation
             id="current-location-pin"
             coordinate={[
               location.coords.longitude,
@@ -66,9 +63,9 @@ export default function MapaScreen() {
             <View style={styles.pin}>
               <Text style={styles.pinText}>📍</Text>
             </View>
-          </MapLibreGL.PointAnnotation>
+          </PointAnnotation>
         )}
-      </MapLibreGL.MapView>
+      </Map>
 
       {errorMsg && (
         <View style={styles.errorMessage}>

@@ -321,3 +321,28 @@ Verificar no painel do Supabase se os dados de usuário e moto estão sendo salv
 - Rodar npx expo run:android com MapLibre v11 beta e testar se tiles renderizam
 - Se funcionar: commitar e seguir para próxima feature do MVP
 - Se não funcionar: investigar demotiles.maplibre.org como style URL de diagnóstico
+
+SESSION_LOG.md — adicionar entrada:
+markdown## Sessão — 12/04/2026
+
+### O que foi feito
+- Migração completa do MapLibre v10 para v11 beta (necessário para Nova Arquitetura)
+- Reescrita do app/(tabs)/index.tsx com nova API v11: Map, Camera, UserLocation, GeoJSONSource, Layer, Marker
+- Corrigido erro de fontes OpenFreeMap via TransformRequestManager.addUrlTransform
+- Corrigido ícone 'accident' inválido no SheetAlerta → 'car-crash'
+- Removido Marker manual de localização (redundante com UserLocation)
+- Configurado trackUserLocation="course" para seguir usuário em movimento
+- EAS build configurado e testado
+- Mapa funcionando com ruas, labels, localização e alertas
+
+### Decisões tomadas
+- MapLibre v11 beta é a única versão compatível com newArchEnabled: true
+- TransformRequestManager para redirecionar fontes OpenFreeMap → demotiles MapLibre
+- trackUserLocation="course" mais adequado para app de moto
+
+### Pendências
+- Warning "Invalid geometry in line layer" — não crítico, não afeta usuário
+- Ícone de alerta no mapa (SymbolLayer) ainda sem imagens reais cadastradas
+
+### Próximo passo
+- Implementar Mapa de Calor de Assaltos (heatmap colaborativo)

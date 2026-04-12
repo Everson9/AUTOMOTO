@@ -1,4 +1,4 @@
-import MapLibreGL from '@maplibre/maplibre-react-native';
+import { Map, Camera, UserLocation, GeoJSONSource, Layer, Marker, TransformRequestManager } from '@maplibre/maplibre-react-native';
 import { View, StyleSheet, Text, ActivityIndicator, Alert } from 'react-native';
 import { useEffect, useState, useRef, useCallback } from 'react';
 import * as Location from 'expo-location';
@@ -7,21 +7,29 @@ import { BotaoAlerta } from '../../src/components/BotaoAlerta';
 import { SheetAlerta, SheetAlertaRef } from '../../src/components/SheetAlerta';
 import { useAuthContext } from '../../src/hooks/AuthProvider';
 
-
 const STYLE_URL = 'https://tiles.openfreemap.org/styles/liberty';
 
 export default function HomeScreen() {
-  const [location, setLocation] = useState<Location.LocationObject | null>(null);
+  const [location, setLocation] = useState<Location.LocationObject | undefined>(undefined);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [locationPermission, setLocationPermission] = useState<'granted' | 'denied' | 'undetermined'>('undetermined');
   const [loading, setLoading] = useState(true);
 
-  const mapRef = useRef<MapLibreGL.MapView>(null);
-  const cameraRef = useRef<MapLibreGL.Camera>(null);
+  const mapRef = useRef<any>(null);
+  const cameraRef = useRef<any>(null);
   const sheetRef = useRef<SheetAlertaRef>(null);
 
-  const { alertas, isLoading: alertasLoading, erro: alertasErro, reportarAlerta } = useMapa(location);
+  const { alertas, erro: alertasErro, reportarAlerta } = useMapa(location);
   const { user } = useAuthContext();
+
+  useEffect(() => {
+    TransformRequestManager.addUrlTransform({
+      id: 'fix-openfreemap-fonts',
+      match: 'tiles\\.openfreemap\\.org/fonts',
+      find: 'https://tiles\\.openfreemap\\.org/fonts',
+      replace: 'https://demotiles.maplibre.org/font',
+    });
+  }, []);
 
   useEffect(() => {
     const requestLocationPermission = async () => {
@@ -83,78 +91,75 @@ export default function HomeScreen() {
 
   return (
     <View style={styles.container}>
-      <MapLibreGL.MapView
+      <Map
         ref={mapRef}
         style={styles.map}
-        styleURL={STYLE_URL}
-        compassEnabled
-        compassViewMargins={{ x: 16, y: 100 }}
-        logoEnabled={false}
-        attributionEnabled={false}
+        mapStyle={STYLE_URL}
+        compass={true}
+        compassPosition={{ top: 100, right: 16 }}
+        logo={false}
+        attribution={false}
         onDidFinishLoadingMap={() => console.log('[Mapa] carregou com sucesso')}
-        onDidFailLoadingMap={(e) => console.log('[Mapa] ERRO ao carregar:', JSON.stringify(e))}
+        onDidFailLoadingMap={() => console.log('[Mapa] ERRO ao carregar')}
       >
-        <MapLibreGL.Camera
+        <Camera
           ref={cameraRef}
-          zoomLevel={15}
-          followUserLocation
-          followUserMode={MapLibreGL.UserTrackingMode.Follow}
-          animationMode="flyTo"
-          animationDuration={500}
+          initialViewState={{
+            center: location
+              ? [location.coords.longitude, location.coords.latitude]
+              : [-43.172896, -22.906847],
+            zoom: 15,
+            
+          }}
+          trackUserLocation="course"
         />
 
-        {location && (
-          <MapLibreGL.PointAnnotation
-            id="current-location-pin"
-            coordinate={[location.coords.longitude, location.coords.latitude]}
-          >
-            <View style={styles.pin}>
-              <Text style={styles.pinText}>📍</Text>
-            </View>
-          </MapLibreGL.PointAnnotation>
-        )}
 
         {alertas.length > 0 && (
-          <MapLibreGL.ShapeSource id="alertas-source" shape={{
-            type: 'FeatureCollection',
-            features: alertas.map(alerta => ({
-              type: 'Feature',
-              id: alerta.id,
-              geometry: {
-                type: 'Point',
-                coordinates: [alerta.lng, alerta.lat],
-              },
-              properties: {
+          <GeoJSONSource
+            id="alertas-source"
+            data={{
+              type: 'FeatureCollection',
+              features: alertas.map(alerta => ({
+                type: 'Feature',
                 id: alerta.id,
-                tipo: alerta.tipo,
-                confirmacoes: alerta.confirmacoes,
-              },
-            })),
-          }}>
-            <MapLibreGL.SymbolLayer
+                geometry: {
+                  type: 'Point',
+                  coordinates: [alerta.lng, alerta.lat],
+                },
+                properties: {
+                  id: alerta.id,
+                  tipo: alerta.tipo,
+                  confirmacoes: alerta.confirmacoes,
+                },
+              })),
+            }}
+          >
+            <Layer
               id="alertas-layer"
-              style={{
-                iconImage: ['get', 'tipo'],
-                iconSize: 1.0,
-                iconAllowOverlap: true,
-                iconIgnorePlacement: true,
-                textField: ['get', 'confirmacoes'],
-                textSize: 12,
-                textOffset: [0, 0.8],
-                textAnchor: 'top',
+              type="symbol"
+              paint={{}}
+              layout={{
+                'icon-image': ['get', 'tipo'],
+                'icon-size': 1.0,
+                'icon-allow-overlap': true,
+                'text-field': ['get', 'confirmacoes'],
+                'text-size': 12,
+                'text-offset': [0, 0.8],
+                'text-anchor': 'top',
               }}
             />
-          </MapLibreGL.ShapeSource>
+          </GeoJSONSource>
         )}
 
         {locationPermission === 'granted' && (
-          <MapLibreGL.UserLocation
-            visible
-            renderMode="native"
-            showsUserHeadingIndicator
+          <UserLocation
+            animated={true}
+            accuracy={false}
+            heading={true}
           />
         )}
-      </MapLibreGL.MapView>
+      </Map>
 
       <BotaoAlerta onPress={handleReportarAlerta} />
 
