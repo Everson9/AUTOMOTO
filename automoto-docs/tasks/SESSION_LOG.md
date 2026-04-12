@@ -295,3 +295,29 @@ Testar o fluxo completo após a reestruturação arquitetural: o app deve agora 
 
 ### Próximo passo recomendado
 Verificar no painel do Supabase se os dados de usuário e moto estão sendo salvos corretamente. Depois avançar para o próximo item do roadmap: Fase 1 item 5 — Radar: alertas da via.
+
+## Sessão — 11/04/2026
+
+### O que foi feito
+- Corrigido erro GestureDetector: adicionado GestureHandlerRootView em app/_layout.tsx
+- Corrigido SheetAlerta: adicionado enablePanDownToClose={true} para fechar com arraste
+- Corrigido renderização condicional do SheetAlerta: componente sempre montado, sem {showSheet && ...}
+- Corrigido import corrompido do MapLibreGL no index.tsx
+- Corrigido plugin do MapLibre no app.json: de string para array ["@maplibre/maplibre-react-native", {}]
+- Removidas permissões duplicadas de localização no app.json
+- Feito EAS build de desenvolvimento e instalado APK no dispositivo
+- Atualizado MapLibre de v10.4.2 para v11 beta (Nova Arquitetura)
+
+### Problema em aberto
+- Mapa renderizando fundo verde sem tiles de ruas
+- Causa identificada: v10 do MapLibre tem suporte incompleto à Nova Arquitetura (newArchEnabled: true)
+- Solução em andamento: atualização para v11 beta instalada, aguardando rebuild
+
+### Decisões tomadas
+- Mantido newArchEnabled: true (obrigatório para react-native-reanimated e worklets)
+- Atualizado MapLibre para v11 beta para compatibilidade com Nova Arquitetura
+
+### Próximo passo
+- Rodar npx expo run:android com MapLibre v11 beta e testar se tiles renderizam
+- Se funcionar: commitar e seguir para próxima feature do MVP
+- Se não funcionar: investigar demotiles.maplibre.org como style URL de diagnóstico

@@ -55,6 +55,7 @@ packages/config/    → ESLint, TSConfig
 | Gamificação e ranking         | `docs/modules/MODULE_GAMIFICACAO.md`           |
 | Monetização B2C e B2B         | `docs/business/MONETIZACAO.md`                 |
 | Navegação e autenticação      | `docs/architecture/EXPO_ROUTER_GUIDE.md`       |
+| Como trabalhamos com IA       | `docs/AI_WORKFLOW.md`                               |
 ---
 
 ## Regras que sempre se aplicam

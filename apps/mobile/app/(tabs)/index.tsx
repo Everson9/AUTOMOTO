@@ -7,7 +7,6 @@ import { BotaoAlerta } from '../../src/components/BotaoAlerta';
 import { SheetAlerta, SheetAlertaRef } from '../../src/components/SheetAlerta';
 import { useAuthContext } from '../../src/hooks/AuthProvider';
 
-MapLibreGL.setAccessToken(null);
 
 const STYLE_URL = 'https://tiles.openfreemap.org/styles/liberty';
 
@@ -16,14 +15,12 @@ export default function HomeScreen() {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [locationPermission, setLocationPermission] = useState<'granted' | 'denied' | 'undetermined'>('undetermined');
   const [loading, setLoading] = useState(true);
-  const [showSheet, setShowSheet] = useState(false);
 
   const mapRef = useRef<MapLibreGL.MapView>(null);
   const cameraRef = useRef<MapLibreGL.Camera>(null);
   const sheetRef = useRef<SheetAlertaRef>(null);
 
   const { alertas, isLoading: alertasLoading, erro: alertasErro, reportarAlerta } = useMapa(location);
-
   const { user } = useAuthContext();
 
   useEffect(() => {
@@ -31,12 +28,10 @@ export default function HomeScreen() {
       try {
         const { status } = await Location.requestForegroundPermissionsAsync();
         setLocationPermission(status);
-
         if (status !== 'granted') {
           setErrorMsg('Permissão de localização negada');
           return;
         }
-
         const currentLocation = await Location.getCurrentPositionAsync({
           accuracy: Location.Accuracy.High,
         });
@@ -47,7 +42,6 @@ export default function HomeScreen() {
         setLoading(false);
       }
     };
-
     requestLocationPermission();
   }, []);
 
@@ -56,16 +50,11 @@ export default function HomeScreen() {
       Alert.alert('Erro', 'Você precisa estar logado para reportar alertas.');
       return;
     }
-
     if (!location) {
-      Alert.alert('Erro', 'Localização não disponível. Aguarde um momento e tente novamente.');
+      Alert.alert('Erro', 'Localização não disponível. Aguarde um momento.');
       return;
     }
-
-    setShowSheet(true);
-    setTimeout(() => {
-      sheetRef.current?.expand();
-    }, 100);
+    sheetRef.current?.expand();
   }, [user, location]);
 
   const handleSelectTipoAlerta = useCallback(async (tipo: TipoAlerta) => {
@@ -73,7 +62,6 @@ export default function HomeScreen() {
       await reportarAlerta(tipo);
       Alert.alert('Sucesso', 'Alerta reportado com sucesso!');
       sheetRef.current?.close();
-      setShowSheet(false);
     } catch (error: any) {
       console.error('[handleSelectTipoAlerta]', error);
       Alert.alert('Erro', error.message || 'Erro ao reportar alerta');
@@ -82,7 +70,6 @@ export default function HomeScreen() {
 
   const handleCloseSheet = useCallback(() => {
     sheetRef.current?.close();
-    setShowSheet(false);
   }, []);
 
   if (loading) {
@@ -104,17 +91,16 @@ export default function HomeScreen() {
         compassViewMargins={{ x: 16, y: 100 }}
         logoEnabled={false}
         attributionEnabled={false}
+        onDidFinishLoadingMap={() => console.log('[Mapa] carregou com sucesso')}
+        onDidFailLoadingMap={(e) => console.log('[Mapa] ERRO ao carregar:', JSON.stringify(e))}
       >
         <MapLibreGL.Camera
           ref={cameraRef}
-          zoomLevel={14}
-          centerCoordinate={
-            location
-              ? [location.coords.longitude, location.coords.latitude]
-              : [-43.172896, -22.906847]
-          }
+          zoomLevel={15}
+          followUserLocation
+          followUserMode={MapLibreGL.UserTrackingMode.Follow}
           animationMode="flyTo"
-          animationDuration={2000}
+          animationDuration={500}
         />
 
         {location && (
@@ -128,7 +114,6 @@ export default function HomeScreen() {
           </MapLibreGL.PointAnnotation>
         )}
 
-        {/* Camada de alertas no mapa */}
         {alertas.length > 0 && (
           <MapLibreGL.ShapeSource id="alertas-source" shape={{
             type: 'FeatureCollection',
@@ -171,16 +156,13 @@ export default function HomeScreen() {
         )}
       </MapLibreGL.MapView>
 
-      {/* Botão flutuante para reportar alerta */}
       <BotaoAlerta onPress={handleReportarAlerta} />
 
-      {showSheet && (
-        <SheetAlerta
-          ref={sheetRef}
-          onSelectTipo={handleSelectTipoAlerta}
-          onClose={handleCloseSheet}
-        />
-      )}
+      <SheetAlerta
+        ref={sheetRef}
+        onSelectTipo={handleSelectTipoAlerta}
+        onClose={handleCloseSheet}
+      />
 
       {(alertasErro || errorMsg) && (
         <View style={styles.errorMessage}>

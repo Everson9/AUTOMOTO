@@ -53,6 +53,7 @@ export const SheetAlerta = forwardRef<SheetAlertaRef, SheetAlertaProps>(
         ref={bottomSheetRef}
         index={-1}
         snapPoints={snapPoints}
+        enablePanDownToClose={true}
         onClose={onClose}
         backgroundStyle={styles.bottomSheetBackground}
         handleIndicatorStyle={styles.handleIndicator}

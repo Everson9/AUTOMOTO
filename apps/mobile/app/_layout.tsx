@@ -4,12 +4,15 @@ import { router, Stack } from 'expo-router';
 import { AuthProvider } from '../src/hooks/AuthProvider';
 import { useAuthContext } from '../src/hooks/AuthProvider';
 import { supabase } from '../src/lib/supabase';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 export default function RootLayout() {
   return (
-    <AuthProvider>
-      <RootLayoutNav />
-    </AuthProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <AuthProvider>
+        <RootLayoutNav />
+      </AuthProvider>
+    </GestureHandlerRootView>
   );
 }
 
