@@ -61,6 +61,7 @@ export function useAdicionarMod(): UseAdicionarModResult {
       const { error: insertError } = await supabase
         .from('mods')
         .insert({
+          user_id: user.id,
           moto_id: moto.id,
           nome: form.nome,
           descricao: form.descricao || null,

@@ -173,3 +173,30 @@ contexto do Expo Router.
 - Rotas de auth controladas por arquivos físicos em app/
 - Redirecionamento via router.replace() no _layout.tsx
 - src/navigation/ depreciado e não utilizado
+
+---
+
+## ADR-010: Fase 1.5 — Polimento UX antes da Fase 2
+
+**Status:** Aceito
+**Data:** 2026-04-18
+
+### Contexto
+Após completar a Fase 1, identificamos pontos críticos de UX:
+- App inicia direto no mapa sem contexto
+- Cadastro de moto no onboarding causa fricção (o usuário quer ver o app primeiro)
+- Mapa sem navegação real limita utilidade
+- Logo e identidade visual ausentes
+
+### Decisão
+Adicionar Fase 1.5 de polimento antes de continuar com features da Fase 2,
+priorizando experiência do usuário e qualidade sobre quantidade de features.
+
+**Meta:** app pronto para beta fechado na Play Store ao final da Fase 1.5.
+
+### Consequências
+- ✅ App com UX mais sólida para aquisição de primeiros usuários
+- ✅ Fluxo de onboarding mais fluido (cadastro de moto opcional no início)
+- ✅ Mapa com ícones profissionais e navegação real
+- ✅ Identidade visual consolidada antes de crescer
+- ⚠️ Fase 2 adiada, mas com base sólida para crescimento

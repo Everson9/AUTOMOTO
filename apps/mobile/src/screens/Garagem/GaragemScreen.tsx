@@ -16,6 +16,7 @@ import {
   Image,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useFocusEffect } from '@react-navigation/native';
 import { useGaragem } from './useGaragem';
 import { MotoIlustration, TipoMoto } from '../../components/MotoIlustration';
 import { ModCard } from '../../components/ModCard';
@@ -26,6 +27,13 @@ export default function GaragemScreen() {
   const [editandoKm, setEditandoKm] = useState(false);
   const [kmInput, setKmInput] = useState('');
   const [salvandoKm, setSalvandoKm] = useState(false);
+
+  // Rebuscar dados quando a tela ganhar foco (ex: voltar do adicionar mod)
+  useFocusEffect(
+    React.useCallback(() => {
+      refetch();
+    }, [refetch])
+  );
 
   if (loading) {
     return (
@@ -87,7 +95,7 @@ export default function GaragemScreen() {
   };
 
   const handleGerarDossie = () => {
-    Alert.alert('Em breve', 'A funcionalidade de Dossiê estará disponível em breve!');
+    router.push('/garagem/dossie');
   };
 
   const handleEditarMoto = () => {
@@ -97,6 +105,10 @@ export default function GaragemScreen() {
 
   const handleAdicionarMod = () => {
     router.push('/garagem/adicionar-mod');
+  };
+
+  const handleEditarMod = (modId: string) => {
+    router.push(`/garagem/editar-mod?id=${modId}`);
   };
 
   const tipoMoto = (moto.tipo as TipoMoto) || 'default';
@@ -219,6 +231,7 @@ export default function GaragemScreen() {
                 descricao={mod.descricao}
                 dataInstalacao={mod.data_instalacao}
                 valorInvestido={mod.valor_investido}
+                onPress={() => handleEditarMod(mod.id)}
               />
             ))
           )}

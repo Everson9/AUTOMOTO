@@ -415,3 +415,78 @@ markdown## Sessão — 12/04/2026
 
 ### Próximo passo
 - Implementar Garagem: inventário de mods (item 4 da Fase 1)
+
+---
+
+## Sessão — 18/04/2026 (Garagem)
+
+### O que foi feito
+- Tab bar implementada (Radar + Garagem com ícones MaterialIcons)
+- Tela Garagem com card da moto, ilustração SVG por tipo (naked, sport, scooter, trail, custom)
+- KM editável inline com TextInput + validação
+- Inventário de mods: adicionar, editar, deletar
+- Date picker funcional usando @react-native-community/datetimepicker
+- Tabela mods criada no Supabase (migration: 20260418000001_create_mods.sql)
+- Deleção de mod pelo ícone de lixeira na tela de edição (header direito)
+- useFocusEffect para rebuscar mods ao voltar da edição
+
+### Arquivos criados/modificados
+- app/(tabs)/_layout.tsx → tab bar Radar/Garagem
+- app/(tabs)/garagem.tsx → route wrapper
+- app/garagem/adicionar-mod.tsx → route wrapper
+- app/garagem/editar-mod.tsx → route wrapper
+- src/screens/Garagem/GaragemScreen.tsx
+- src/screens/Garagem/AdicionarModScreen.tsx
+- src/screens/Garagem/EditarModScreen.tsx
+- src/screens/Garagem/useGaragem.ts
+- src/screens/Garagem/useAdicionarMod.ts
+- src/screens/Garagem/useEditarMod.ts
+- src/components/MotoIlustration/index.tsx
+- src/components/ModCard/index.tsx
+- supabase/migrations/20260418000001_create_mods.sql
+
+### Decisões tomadas
+- react-native-svg para ilustrações de moto inline (não usar assets externos)
+- Dark theme: #0D0D0D background, #F97316 accent (amber)
+- touchable com minHeight: 60 para acessibilidade
+- Deleção feita pela tela de edição (ícone lixeira), não por longPress no card
+
+### Próximo passo
+- Implementar Dossiê de Procedência (PDF) — item 8 da Fase 1
+
+---
+
+## Sessão — 18/04/2026 (Dossiê PDF)
+
+### O que foi feito
+- Dossiê de Procedência (PDF) implementado
+- Template HTML gerado on-device com expo-print (identidade visual dark + laranja)
+- Tela de preview (DossieScreen) com dados da moto + lista de mods + total investido
+- Compartilhamento via expo-sharing (Android sheet nativo)
+- Botão "Gerar Dossiê PDF" na Garagem navega para DossieScreen
+- Status bar fix: paddingTop + StatusBar.currentHeight no Android
+
+### Arquivos criados/modificados
+- apps/mobile/src/utils/templateDossie.ts → template HTML do PDF
+- apps/mobile/src/screens/Garagem/useDossie.ts → hook de busca + geração + compartilhamento
+- apps/mobile/src/screens/Garagem/DossieScreen.tsx → tela de preview
+- apps/mobile/app/garagem/dossie.tsx → route wrapper
+- apps/mobile/src/screens/Garagem/GaragemScreen.tsx → handleGerarDossie navega para /garagem/dossie
+- package.json → expo-print + expo-sharing instalados
+
+### Decisões tomadas
+- PDF gerado localmente, sem upload para Storage no MVP
+- Tela de preview antes de gerar (não ação direta)
+- Apenas moto + mods no PDF (manutenções na Fase 2)
+- StatusBar.currentHeight para padding no Android
+- Total investido calculado e exibido no preview e no PDF
+
+### Critério de pronto
+- [x] Botão "Gerar Dossiê PDF" funcional na tela da Garagem
+- [x] PDF gerado com dados da moto, lista de mods
+- [x] PDF compartilhável via sheet nativo do Android
+- [x] Design do PDF seguindo identidade visual do app (dark + laranja)
+- [ ] Testado no Android físico (pendente)
+
+### Próximo passo
+- Fase 1 concluída! Iniciar Fase 2: Auth por SMS/telefone

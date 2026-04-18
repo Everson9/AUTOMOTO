@@ -11,11 +11,29 @@
 | 1 | Setup monorepo + Expo + MapLibre | Infra   | `concluído` | `docs/architecture/OVERVIEW.md`        |
 | 2 | Auth por email (Supabase)      | Auth     | `concluído` | —                                      |
 | 3 | Onboarding + cadastro de moto  | Garagem  | `concluído` | `docs/modules/MODULE_GARAGEM.md`       |
-| 4 | Garagem: inventário de mods    | Garagem  | `pendente` | `docs/modules/MODULE_GARAGEM.md`       |
+| 4 | Garagem: inventário de mods    | Garagem  | `concluído` | `docs/modules/MODULE_GARAGEM.md`       |
 | 5 | Radar: alertas da via (Waze)   | Radar    | `concluído` | `docs/modules/MODULE_RADAR.md`         |
 | 6 | Radar: mapa de calor assaltos  | Radar    | `concluído` | `docs/modules/MODULE_RADAR.md`         |
 | 7 | Aviso de clima (Open-Meteo)    | Radar    | `concluído` | `docs/modules/MODULE_RADAR.md`         |
-| 8 | Dossiê de Procedência (PDF)    | Garagem  | `pendente` | `docs/modules/MODULE_GARAGEM.md`       |
+| 8 | Dossiê de Procedência (PDF)    | Garagem  | `concluído`| `docs/modules/MODULE_GARAGEM.md`       |
+
+---
+
+## Fase 1.5 — Polimento e UX
+**Objetivo:** App redondinho e pronto para beta fechado na Play Store  
+**Critério de avanço:** Todos os itens concluídos + app publicado em beta fechado
+
+| # | Feature                                           | Módulo      | Status     |
+|---|---------------------------------------------------|-------------|------------|
+| 1 | Criação da logo Automoto                          | Identidade  | `pendente` |
+| 2 | Home contextual (substituir mapa como tela inicial) | UX          | `pendente` |
+| 3 | Editar moto + upload de foto real                 | Garagem     | `pendente` |
+| 4 | Cadastro de moto movido para dentro da Garagem (remover do onboarding) | Garagem | `pendente` |
+| 5 | Ícone da moto do usuário no mapa (substituir ponto azul) | Radar  | `pendente` |
+| 6 | Ícones SVG customizados por tipo de alerta (substituir emojis) | Radar | `pendente` |
+| 7 | Notificações push básicas (alertas de proximidade) | Radar       | `pendente` |
+| 8 | Onboarding tutorial (primeira vez no app)         | UX          | `pendente` |
+| 9 | Navegação com rota no mapa (estilo Waze, OpenRouteService) | Radar | `pendente` |
 
 ---
 

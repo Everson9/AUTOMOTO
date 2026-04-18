@@ -165,6 +165,37 @@ GaragemScreen/
 
 ---
 
+## Features planejadas (pós-MVP)
+
+### Categoria "Reposição" nos mods
+Adicionar categoria para peças trocadas por necessidade (espelho, retrovisor, etc.) além das categorias estéticas. Tanto reposições quanto customizações entram no Dossiê como evidência de procedência.
+
+### Comprovantes nos mods e manutenções
+Upload de foto de nota fiscal ou comprovante em cada mod e manutenção. Armazenado no Supabase Storage (bucket `fotos`). Aparece no Dossiê PDF como evidência de procedência. Aplicável tanto a customizações quanto a reposições de peças.
+
+### Comprovantes de manutenção
+- Upload de fotos de recibos/notas fiscais
+- Armazenamento em bucket `fotos` no Supabase Storage
+- Campo `foto_recibo_url` já existe na tabela `manutencoes`
+- OCR futuro para auto-preenchimento de dados da nota
+
+### Cálculo de valor de venda da moto
+- Base: valor FIPE consultado automaticamente por modelo/ano
+- + Valorização por mods (com fator de aproveitamento — nem todo mod vale 100% na revenda)
+- - Depreciação por km rodados e tempo de uso
+- - Penalização por manutenções atrasadas
+- Resultado: faixa de valor (mínimo/máximo) para não travar o vendedor
+- Valor editável pelo usuário: app sugere, usuário pode ajustar manualmente
+- No Dossiê aparece como "Valor estimado pelo app: R$ X" ou "Valor definido pelo proprietário: R$ X"
+- Objetivo: ser conservador o suficiente para não prejudicar o vendedor na negociação
+
+### Histórico de valor de mercado
+- Integração com tabela FIPE para estimar valor de mercado
+- Cálculo de depreciação vs. valorização por mods e manutenções
+- Gráfico de evolução do valor ao longo do tempo
+
+---
+
 ## Testes de aceitação (Fase 1)
 
 - [ ] Usuário consegue cadastrar uma moto com placa, modelo, ano e foto

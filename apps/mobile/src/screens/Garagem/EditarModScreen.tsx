@@ -1,9 +1,9 @@
-// apps/mobile/src/screens/Garagem/AdicionarModScreen.tsx
+// apps/mobile/src/screens/Garagem/EditarModScreen.tsx
 //
-// Tela para adicionar customização/mod à moto.
+// Tela para editar customização/mod da moto.
 // Formulário com validação Zod + react-hook-form.
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -15,13 +15,14 @@ import {
   ActivityIndicator,
   Platform,
 } from 'react-native';
+import { MaterialIcons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useAdicionarMod, CategoriaMod } from './useAdicionarMod';
+import { useEditarMod, CategoriaMod } from './useEditarMod';
 
 // Schema de validação
 const modSchema = z.object({
@@ -42,9 +43,10 @@ const CATEGORIAS: { value: CategoriaMod; label: string }[] = [
   { value: 'acessorio', label: 'Acessório' },
 ];
 
-export default function AdicionarModScreen() {
+export default function EditarModScreen() {
   const router = useRouter();
-  const { loading, erro, salvar } = useAdicionarMod();
+  const { id } = useLocalSearchParams<{ id: string }>();
+  const { loading, erro, modData, buscarMod, salvar, deletar } = useEditarMod();
   const [categoriaSelecionada, setCategoriaSelecionada] = useState<CategoriaMod>('estetico');
   const [dataPickerVisible, setDataPickerVisible] = useState(false);
   const [dataSelecionada, setDataSelecionada] = useState<Date | undefined>(undefined);
@@ -53,6 +55,7 @@ export default function AdicionarModScreen() {
     control,
     handleSubmit,
     setValue,
+    reset,
     formState: { errors },
   } = useForm<ModFormData>({
     resolver: zodResolver(modSchema),
@@ -65,6 +68,30 @@ export default function AdicionarModScreen() {
     },
   });
 
+  // Buscar dados do mod ao carregar
+  useEffect(() => {
+    if (id) {
+      buscarMod(id);
+    }
+  }, [id, buscarMod]);
+
+  // Preencher formulário quando dados chegarem
+  useEffect(() => {
+    if (modData) {
+      reset({
+        nome: modData.nome,
+        descricao: modData.descricao || '',
+        valorInvestido: modData.valor_investido?.toString() || '',
+        dataInstalacao: modData.data_instalacao ? new Date(modData.data_instalacao) : null,
+        categoria: modData.categoria,
+      });
+      setCategoriaSelecionada(modData.categoria);
+      if (modData.data_instalacao) {
+        setDataSelecionada(new Date(modData.data_instalacao));
+      }
+    }
+  }, [modData, reset]);
+
   const onSubmit = async (data: ModFormData) => {
     const sucesso = await salvar({
       nome: data.nome,
@@ -75,7 +102,7 @@ export default function AdicionarModScreen() {
     });
 
     if (sucesso) {
-      Alert.alert('Sucesso', 'Customização adicionada!', [
+      Alert.alert('Sucesso', 'Customização atualizada!', [
         { text: 'OK', onPress: () => router.back() },
       ]);
     }
@@ -85,6 +112,68 @@ export default function AdicionarModScreen() {
     router.back();
   };
 
+  const handleDeletar = () => {
+    if (!modData) return;
+
+    Alert.alert(
+      'Remover mod',
+      'Deseja remover este mod?',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Remover',
+          style: 'destructive',
+          onPress: async () => {
+            const sucesso = await deletar();
+            if (sucesso) {
+              router.back();
+            } else {
+              Alert.alert('Erro', 'Não foi possível remover o mod');
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  if (loading && !modData) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.header}>
+          <TouchableOpacity onPress={handleCancelar} style={styles.backButton}>
+            <Text style={styles.backIcon}>←</Text>
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Editar customização</Text>
+          <View style={styles.headerSpacer} />
+        </View>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#F97316" />
+          <Text style={styles.loadingText}>Carregando...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (!modData && erro) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.header}>
+          <TouchableOpacity onPress={handleCancelar} style={styles.backButton}>
+            <Text style={styles.backIcon}>←</Text>
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Editar customização</Text>
+          <View style={styles.headerSpacer} />
+        </View>
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>{erro}</Text>
+          <TouchableOpacity style={styles.retryButton} onPress={() => id && buscarMod(id)}>
+            <Text style={styles.retryButtonText}>Tentar novamente</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       {/* Header */}
@@ -92,8 +181,10 @@ export default function AdicionarModScreen() {
         <TouchableOpacity onPress={handleCancelar} style={styles.backButton}>
           <Text style={styles.backIcon}>←</Text>
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Nova customização</Text>
-        <View style={styles.headerSpacer} />
+        <Text style={styles.headerTitle}>Editar customização</Text>
+        <TouchableOpacity onPress={handleDeletar} style={styles.deleteButton}>
+          <MaterialIcons name="delete" size={24} color="#E02424" />
+        </TouchableOpacity>
       </View>
 
       <ScrollView contentContainerStyle={styles.content}>
@@ -296,8 +387,44 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     textAlign: 'center',
   },
-  headerSpacer: {
+  deleteButton: {
     width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 14,
+    color: '#9CA3AF',
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  errorText: {
+    fontSize: 16,
+    color: '#E02424',
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+  retryButton: {
+    backgroundColor: '#F97316',
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 8,
+  },
+  retryButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#1A1A1A',
   },
   content: {
     padding: 20,
@@ -372,12 +499,6 @@ const styles = StyleSheet.create({
   dateButtonText: {
     fontSize: 16,
     color: '#FFFFFF',
-  },
-  errorContainer: {
-    backgroundColor: 'rgba(224, 36, 36, 0.1)',
-    borderRadius: 8,
-    padding: 12,
-    marginTop: 8,
   },
   errorMessage: {
     fontSize: 14,
