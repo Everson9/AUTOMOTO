@@ -1,18 +1,18 @@
-// apps/mobile/src/components/BotaoAlerta/index.tsx
+// apps/mobile/src/components/BotaoAssalto/index.tsx
 
 import { StyleSheet, TouchableOpacity, View, Text, Animated } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useEffect, useRef } from 'react';
 import * as Haptics from 'expo-haptics';
 
-export interface BotaoAlertaProps {
+export interface BotaoAssaltoProps {
   /** Callback chamado ao pressionar o botão */
   onPress: () => void;
   /** Se o botão deve estar visível (animado) */
   visivel?: boolean;
 }
 
-export function BotaoAlerta({ onPress, visivel = true }: BotaoAlertaProps) {
+export function BotaoAssalto({ onPress, visivel = true }: BotaoAssaltoProps) {
   const opacity = useRef(new Animated.Value(visivel ? 1 : 0)).current;
   const scale = useRef(new Animated.Value(visivel ? 1 : 0.8)).current;
 
@@ -47,7 +47,7 @@ export function BotaoAlerta({ onPress, visivel = true }: BotaoAlertaProps) {
   }, [visivel, opacity, scale]);
 
   const handlePress = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
     onPress();
   };
 
@@ -58,12 +58,12 @@ export function BotaoAlerta({ onPress, visivel = true }: BotaoAlertaProps) {
     >
       <TouchableOpacity
         onPress={handlePress}
-        accessibilityLabel="Reportar alerta na via"
+        accessibilityLabel="Reportar assalto na região"
         activeOpacity={0.7}
       >
         <View style={styles.button}>
-          <MaterialIcons name="warning" size={24} color="#FFFFFF" />
-          <Text style={styles.buttonText}>Alerta</Text>
+          <MaterialIcons name="shield" size={24} color="#FFFFFF" />
+          <Text style={styles.buttonText}>Assalto</Text>
         </View>
       </TouchableOpacity>
     </Animated.View>
@@ -74,13 +74,13 @@ const styles = StyleSheet.create({
   container: {
     position: 'absolute',
     bottom: 20,
-    right: 20,
+    left: 20,
     zIndex: 1000,
   },
   button: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#DC2626', // Red 600
+    backgroundColor: '#7F1D1D', // Red 900 - vermelho escuro conforme design system
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderRadius: 28,

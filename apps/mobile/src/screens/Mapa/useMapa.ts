@@ -1,12 +1,12 @@
 // apps/mobile/src/screens/Mapa/useMapa.ts
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { supabase } from '../../lib/supabase';
 import { LocationObject } from 'expo-location';
 import { useAuthContext } from '../../hooks/AuthProvider';
 
 // Define the alert types based on the enum from the database
-export type TipoAlerta = 'oleo' | 'areia' | 'buraco' | 'obra' | 'enchente' | 'acidente' | 'outro';
+export type TipoAlerta = 'oleo' | 'areia' | 'buraco' | 'obra' | 'enchente' | 'acidente' | 'assalto' | 'outro';
 
 export interface AlertaVia {
   id: string;
@@ -29,6 +29,25 @@ export interface AlertaViaInsert {
   expira_em: string; // ISO string
 }
 
+export interface AlertaFeature {
+  type: 'Feature';
+  id: string;
+  geometry: {
+    type: 'Point';
+    coordinates: [number, number];
+  };
+  properties: {
+    id: string;
+    tipo: TipoAlerta;
+    confirmacoes: number;
+  };
+}
+
+export interface AlertasGeoJSON {
+  type: 'FeatureCollection';
+  features: AlertaFeature[];
+}
+
 export function useMapa(currentLocation?: LocationObject) {
   const { user } = useAuthContext();
   const [alertas, setAlertas] = useState<AlertaVia[]>([]);
@@ -43,6 +62,7 @@ export function useMapa(currentLocation?: LocationObject) {
     obra:     48 * 60 * 60 * 1000,  // 48 horas
     enchente: 6 * 60 * 60 * 1000,   // 6 horas
     acidente: 3 * 60 * 60 * 1000,   // 3 horas
+    assalto:  7 * 24 * 60 * 60 * 1000,  // 7 dias (mesmo período do heatmap)
     outro:    2 * 60 * 60 * 1000,   // 2 horas
   };
 
@@ -124,8 +144,27 @@ export function useMapa(currentLocation?: LocationObject) {
     }
   }, [currentLocation]);
 
+  // Criar GeoJSON memoizado para evitar recriação a cada render
+  const alertasGeoJSON: AlertasGeoJSON = useMemo(() => ({
+    type: 'FeatureCollection' as const,
+    features: alertas.map(alerta => ({
+      type: 'Feature' as const,
+      id: alerta.id,
+      geometry: {
+        type: 'Point' as const,
+        coordinates: [alerta.lng, alerta.lat] as [number, number],
+      },
+      properties: {
+        id: alerta.id,
+        tipo: alerta.tipo,
+        confirmacoes: alerta.confirmacoes,
+      },
+    })),
+  }), [alertas]);
+
   return {
     alertas,
+    alertasGeoJSON,
     isLoading,
     erro,
     reportarAlerta,

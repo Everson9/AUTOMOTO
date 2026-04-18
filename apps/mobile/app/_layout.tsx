@@ -53,6 +53,7 @@ function RootLayoutNav() {
       <Stack.Screen name="login" />
       <Stack.Screen name="cadastro" />
       <Stack.Screen name="cadastrar-moto" />
+      <Stack.Screen name="perfil" />
     </Stack>
   );
 }

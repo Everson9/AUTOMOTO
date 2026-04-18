@@ -1,10 +1,14 @@
 import { Map, Camera, UserLocation, GeoJSONSource, Layer, Marker, TransformRequestManager } from '@maplibre/maplibre-react-native';
-import { View, StyleSheet, Text, ActivityIndicator, Alert } from 'react-native';
+import { View, StyleSheet, Text, ActivityIndicator, Alert, TouchableOpacity } from 'react-native';
 import { useEffect, useState, useRef, useCallback } from 'react';
 import * as Location from 'expo-location';
+import { router } from 'expo-router';
 import { useMapa, TipoAlerta } from '../../src/screens/Mapa/useMapa';
+import { useHeatmap } from '../../src/hooks/useHeatmap';
 import { BotaoAlerta } from '../../src/components/BotaoAlerta';
+import { BotaoAssalto } from '../../src/components/BotaoAssalto';
 import { SheetAlerta, SheetAlertaRef } from '../../src/components/SheetAlerta';
+import { SheetAssalto, SheetAssaltoRef } from '../../src/components/SheetAssalto';
 import { useAuthContext } from '../../src/hooks/AuthProvider';
 
 const STYLE_URL = 'https://tiles.openfreemap.org/styles/liberty';
@@ -14,13 +18,30 @@ export default function HomeScreen() {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [locationPermission, setLocationPermission] = useState<'granted' | 'denied' | 'undetermined'>('undetermined');
   const [loading, setLoading] = useState(true);
+  const [sheetAberto, setSheetAberto] = useState(false);
 
   const mapRef = useRef<any>(null);
   const cameraRef = useRef<any>(null);
   const sheetRef = useRef<SheetAlertaRef>(null);
+  const sheetAssaltoRef = useRef<SheetAssaltoRef>(null);
 
-  const { alertas, erro: alertasErro, reportarAlerta } = useMapa(location);
+  const { alertas, alertasGeoJSON, erro: alertasErro, reportarAlerta } = useMapa(location);
+  const { heatmapData, erro: heatmapErro, refetch: refetchHeatmap } = useHeatmap(location);
   const { user } = useAuthContext();
+
+  // Calcular iniciais do usuário para o avatar
+  const iniciais = user?.user_metadata?.nome
+    ? user.user_metadata.nome
+        .split(' ')
+        .map((n: string) => n[0])
+        .join('')
+        .substring(0, 2)
+        .toUpperCase()
+    : user?.email?.substring(0, 2).toUpperCase() || '?';
+
+  const handlePerfil = useCallback(() => {
+    router.push('/perfil');
+  }, []);
 
   useEffect(() => {
     TransformRequestManager.addUrlTransform({
@@ -62,12 +83,39 @@ export default function HomeScreen() {
       Alert.alert('Erro', 'Localização não disponível. Aguarde um momento.');
       return;
     }
+    setSheetAberto(true);
     sheetRef.current?.expand();
   }, [user, location]);
+
+  const handleReportarAssalto = useCallback(() => {
+    if (!user) {
+      Alert.alert('Erro', 'Você precisa estar logado para reportar assaltos.');
+      return;
+    }
+    if (!location) {
+      Alert.alert('Erro', 'Localização não disponível. Aguarde um momento.');
+      return;
+    }
+    setSheetAberto(true);
+    sheetAssaltoRef.current?.expand();
+  }, [user, location]);
+
+  const handleConfirmarAssalto = useCallback(async () => {
+    try {
+      await reportarAlerta('assalto');
+      await refetchHeatmap();
+      setSheetAberto(false);
+      Alert.alert('Sucesso', 'Assalto reportado com sucesso!');
+    } catch (error: any) {
+      console.error('[handleConfirmarAssalto]', error);
+      Alert.alert('Erro', error.message || 'Erro ao reportar assalto');
+    }
+  }, [reportarAlerta, refetchHeatmap]);
 
   const handleSelectTipoAlerta = useCallback(async (tipo: TipoAlerta) => {
     try {
       await reportarAlerta(tipo);
+      setSheetAberto(false);
       Alert.alert('Sucesso', 'Alerta reportado com sucesso!');
       sheetRef.current?.close();
     } catch (error: any) {
@@ -76,7 +124,13 @@ export default function HomeScreen() {
     }
   }, [reportarAlerta]);
 
+  const handleCloseSheetAssalto = useCallback(() => {
+    setSheetAberto(false);
+    sheetAssaltoRef.current?.close();
+  }, []);
+
   const handleCloseSheet = useCallback(() => {
+    setSheetAberto(false);
     sheetRef.current?.close();
   }, []);
 
@@ -115,38 +169,66 @@ export default function HomeScreen() {
         />
 
 
-        {alertas.length > 0 && (
+        {/* Alertas na via */}
+        {alertas.map(alerta => {
+          // Mapear tipo para emoji
+          const emojiMap: Record<string, string> = {
+            oleo: '🛢️',
+            areia: '🏖️',
+            buraco: '🕳️',
+            obra: '🚧',
+            enchente: '🌊',
+            acidente: '💥',
+            assalto: '🚨',
+            outro: '❓',
+          };
+          const emoji = emojiMap[alerta.tipo] || '📍';
+
+          return (
+            <Marker
+              key={alerta.id}
+              id={alerta.id}
+              lngLat={[alerta.lng, alerta.lat]}
+              anchor="center"
+            >
+              <View style={styles.markerContainer}>
+                <Text style={styles.markerText}>{emoji}</Text>
+              </View>
+            </Marker>
+          );
+        })}
+
+        {/* Heatmap de assaltos */}
+        {heatmapData.features.length > 0 && (
           <GeoJSONSource
-            id="alertas-source"
-            data={{
-              type: 'FeatureCollection',
-              features: alertas.map(alerta => ({
-                type: 'Feature',
-                id: alerta.id,
-                geometry: {
-                  type: 'Point',
-                  coordinates: [alerta.lng, alerta.lat],
-                },
-                properties: {
-                  id: alerta.id,
-                  tipo: alerta.tipo,
-                  confirmacoes: alerta.confirmacoes,
-                },
-              })),
-            }}
+            id="heatmap-source"
+            data={heatmapData}
           >
             <Layer
-              id="alertas-layer"
-              type="symbol"
-              paint={{}}
-              layout={{
-                'icon-image': ['get', 'tipo'],
-                'icon-size': 1.0,
-                'icon-allow-overlap': true,
-                'text-field': ['get', 'confirmacoes'],
-                'text-size': 12,
-                'text-offset': [0, 0.8],
-                'text-anchor': 'top',
+              id="heatmap-layer"
+              type="heatmap"
+              paint={{
+                heatmapColor: [
+                  'interpolate',
+                  ['linear'],
+                  ['heatmap-density'],
+                  0,
+                  'rgba(127, 29, 29, 0)',
+                  0.2,
+                  'rgba(127, 29, 29, 0.3)',
+                  0.4,
+                  'rgba(220, 38, 38, 0.5)',
+                  0.6,
+                  'rgba(239, 68, 68, 0.6)',
+                  0.8,
+                  'rgba(252, 165, 165, 0.7)',
+                  1,
+                  'rgba(255, 255, 255, 0.9)',
+                ],
+                heatmapWeight: ['get', 'peso'],
+                heatmapIntensity: ['interpolate', ['linear'], ['zoom'], 10, 1, 15, 2],
+                heatmapRadius: ['interpolate', ['linear'], ['zoom'], 10, 20, 15, 40],
+                heatmapOpacity: 0.8,
               }}
             />
           </GeoJSONSource>
@@ -161,7 +243,17 @@ export default function HomeScreen() {
         )}
       </Map>
 
-      <BotaoAlerta onPress={handleReportarAlerta} />
+      <BotaoAlerta onPress={handleReportarAlerta} visivel={!sheetAberto} />
+      <BotaoAssalto onPress={handleReportarAssalto} visivel={!sheetAberto} />
+
+      {/* Botão de perfil */}
+      <TouchableOpacity
+        style={styles.perfilButton}
+        onPress={handlePerfil}
+        activeOpacity={0.7}
+      >
+        <Text style={styles.perfilButtonText}>{iniciais}</Text>
+      </TouchableOpacity>
 
       <SheetAlerta
         ref={sheetRef}
@@ -169,9 +261,15 @@ export default function HomeScreen() {
         onClose={handleCloseSheet}
       />
 
-      {(alertasErro || errorMsg) && (
+      <SheetAssalto
+        ref={sheetAssaltoRef}
+        onConfirm={handleConfirmarAssalto}
+        onClose={handleCloseSheetAssalto}
+      />
+
+      {(alertasErro || heatmapErro || errorMsg) && (
         <View style={styles.errorMessage}>
-          <Text>{alertasErro || errorMsg}</Text>
+          <Text>{alertasErro || heatmapErro || errorMsg}</Text>
         </View>
       )}
     </View>
@@ -200,6 +298,16 @@ const styles = StyleSheet.create({
     shadowRadius: 3.84,
   },
   pinText: { fontSize: 20 },
+  markerContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  markerText: {
+    fontSize: 32,
+    textShadowColor: 'rgba(0, 0, 0, 0.75)',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 2,
+  },
   errorMessage: {
     position: 'absolute',
     top: 50,
@@ -209,5 +317,26 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 5,
     alignItems: 'center',
+  },
+  perfilButton: {
+    position: 'absolute',
+    top: 60,
+    right: 16,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#F97316',
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+  },
+  perfilButtonText: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#1A1A1A',
   },
 });

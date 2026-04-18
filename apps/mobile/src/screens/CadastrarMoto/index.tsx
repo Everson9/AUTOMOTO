@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, ScrollView } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { z } from 'zod';
 import { useForm, Controller } from 'react-hook-form';
@@ -69,144 +70,151 @@ export default function CadastrarMotoScreen() {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.title}>Cadastrar Moto</Text>
+    <SafeAreaView style={styles.container}>
+      <ScrollView contentContainerStyle={styles.content}>
+        <Text style={styles.title}>Cadastrar Moto</Text>
 
-      <Controller
-        control={control}
-        name="placa"
-        render={({ field: { onChange, value } }) => (
-          <View style={styles.inputContainer}>
-            <Text style={styles.label}>Placa *</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Ex: ABC1D23"
-              placeholderTextColor="#999"
-              value={value}
-              onChangeText={(text) => onChange(text.replace(/[^A-Za-z0-9]/g, '').toUpperCase())}
-              maxLength={7}
-              autoCapitalize="characters"
-            />
-            {errors.placa && <Text style={styles.error}>{errors.placa.message}</Text>}
-          </View>
-        )}
-      />
+        <Controller
+          control={control}
+          name="placa"
+          render={({ field: { onChange, value } }) => (
+            <View style={styles.inputContainer}>
+              <Text style={styles.label}>Placa *</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Ex: ABC1D23"
+                placeholderTextColor="#9CA3AF"
+                value={value}
+                onChangeText={(text) => onChange(text.replace(/[^A-Za-z0-9]/g, '').toUpperCase())}
+                maxLength={7}
+                autoCapitalize="characters"
+              />
+              {errors.placa && <Text style={styles.error}>{errors.placa.message}</Text>}
+            </View>
+          )}
+        />
 
-      <Controller
-        control={control}
-        name="modelo"
-        render={({ field: { onChange, value } }) => (
-          <View style={styles.inputContainer}>
-            <Text style={styles.label}>Modelo *</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Ex: CG 160 Titan"
-              placeholderTextColor="#999"
-              value={value}
-              onChangeText={onChange}
-              autoCapitalize="words"
-            />
-            {errors.modelo && <Text style={styles.error}>{errors.modelo.message}</Text>}
-          </View>
-        )}
-      />
+        <Controller
+          control={control}
+          name="modelo"
+          render={({ field: { onChange, value } }) => (
+            <View style={styles.inputContainer}>
+              <Text style={styles.label}>Modelo *</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Ex: CG 160 Titan"
+                placeholderTextColor="#9CA3AF"
+                value={value}
+                onChangeText={onChange}
+                autoCapitalize="words"
+              />
+              {errors.modelo && <Text style={styles.error}>{errors.modelo.message}</Text>}
+            </View>
+          )}
+        />
 
-      <Controller
-        control={control}
-        name="ano"
-        render={({ field: { onChange, value } }) => (
-          <View style={styles.inputContainer}>
-            <Text style={styles.label}>Ano *</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Ex: 2023"
-              placeholderTextColor="#999"
-              value={value?.toString()}
-              onChangeText={(text) => onChange(text ? parseInt(text) : 0)}
-              keyboardType="numeric"
-              maxLength={4}
-            />
-            {errors.ano && <Text style={styles.error}>{errors.ano.message}</Text>}
-          </View>
-        )}
-      />
+        <Controller
+          control={control}
+          name="ano"
+          render={({ field: { onChange, value } }) => (
+            <View style={styles.inputContainer}>
+              <Text style={styles.label}>Ano *</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Ex: 2023"
+                placeholderTextColor="#9CA3AF"
+                value={value?.toString()}
+                onChangeText={(text) => onChange(text ? parseInt(text) : 0)}
+                keyboardType="numeric"
+                maxLength={4}
+              />
+              {errors.ano && <Text style={styles.error}>{errors.ano.message}</Text>}
+            </View>
+          )}
+        />
 
-      <Controller
-        control={control}
-        name="km_atual"
-        render={({ field: { onChange, value } }) => (
-          <View style={styles.inputContainer}>
-            <Text style={styles.label}>KM Atual *</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Ex: 12000"
-              placeholderTextColor="#999"
-              value={value?.toString()}
-              onChangeText={(text) => onChange(text ? parseInt(text) || 0 : 0)}
-              keyboardType="numeric"
-            />
-            {errors.km_atual && <Text style={styles.error}>{errors.km_atual.message}</Text>}
-          </View>
-        )}
-      />
+        <Controller
+          control={control}
+          name="km_atual"
+          render={({ field: { onChange, value } }) => (
+            <View style={styles.inputContainer}>
+              <Text style={styles.label}>KM Atual *</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Ex: 12000"
+                placeholderTextColor="#9CA3AF"
+                value={value?.toString()}
+                onChangeText={(text) => onChange(text ? parseInt(text) || 0 : 0)}
+                keyboardType="numeric"
+              />
+              {errors.km_atual && <Text style={styles.error}>{errors.km_atual.message}</Text>}
+            </View>
+          )}
+        />
 
-      <TouchableOpacity style={styles.button} onPress={handleSubmit(onSubmit)} disabled={loading}>
-        {loading ? (
-          <ActivityIndicator color="#fff" />
-        ) : (
-          <Text style={styles.buttonText}>Cadastrar Moto</Text>
-        )}
-      </TouchableOpacity>
-    </ScrollView>
+        <TouchableOpacity style={styles.button} onPress={handleSubmit(onSubmit)} disabled={loading} activeOpacity={0.7}>
+          {loading ? (
+            <ActivityIndicator color="#1A1A1A" />
+          ) : (
+            <Text style={styles.buttonText}>Cadastrar Moto</Text>
+          )}
+        </TouchableOpacity>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
+    backgroundColor: '#0D0D0D',
+  },
+  content: {
     flexGrow: 1,
     padding: 20,
-    backgroundColor: '#fff',
   },
   title: {
     fontSize: 24,
-    fontWeight: 'bold',
+    fontWeight: '700',
     textAlign: 'center',
-    marginBottom: 30,
-    color: '#1A56DB',
+    marginBottom: 32,
+    color: '#FFFFFF',
   },
   inputContainer: {
     marginBottom: 20,
   },
   label: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '600',
     marginBottom: 8,
-    color: '#333',
+    color: '#9CA3AF',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   input: {
+    backgroundColor: '#1A1A1A',
     borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
-    padding: 12,
+    borderColor: '#2D2D2D',
+    borderRadius: 12,
+    padding: 16,
     fontSize: 16,
-    backgroundColor: '#f9f9f9',
-    color: '#000',
+    color: '#FFFFFF',
   },
   error: {
-    color: '#e74c3c',
+    color: '#E02424',
     fontSize: 12,
     marginTop: 4,
   },
   button: {
-    backgroundColor: '#1A56DB',
-    borderRadius: 8,
-    padding: 16,
+    backgroundColor: '#F97316',
+    borderRadius: 12,
+    padding: 18,
     alignItems: 'center',
     marginTop: 10,
   },
   buttonText: {
-    color: '#fff',
+    color: '#1A1A1A',
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: '700',
   },
 });

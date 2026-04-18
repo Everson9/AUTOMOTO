@@ -346,3 +346,40 @@ markdown## Sessão — 12/04/2026
 
 ### Próximo passo
 - Implementar Mapa de Calor de Assaltos (heatmap colaborativo)
+
+## Sessão — 17/04/2026
+
+### O que foi feito
+- Migração completa do MapLibre v10 para v11 API (components: Map, Camera, UserLocation, GeoJSONSource, Layer, Marker)
+- Corrigido erro de fontes OpenFreeMap via TransformRequestManager.addUrlTransform
+- Criada migration SQL para adicionar tipo 'assalto' ao enum tipo_alerta_via
+- Criada RPC function assaltos_para_heatmap para extrair coordenadas ST_X/ST_Y do geom
+- Criado hook useHeatmap.ts com decay temporal (peso = 1 - dias/7)
+- Criado componente BotaoAssalto com animação de fade+scale quando sheet abre
+- Criado componente SheetAssalto para confirmação de assalto
+- Heatmap renderizado com `<Layer type="heatmap" paint={{...}} />`
+- Alertas de via renderizados com emojis via Marker + Text (SymbolLayer não renderizou emojis corretamente)
+- Atualizado useMapa.ts para incluir 'assalto' em TipoAlerta e AlertasGeoJSON
+- Botões BotaoAlerta e BotaoAssalto ocultam com animação quando sheets abrem
+- Perfil do usuário com iniciais no canto superior direito
+
+### Decisões tomadas
+- Usar Marker + Text para emojis em vez de SymbolLayer (text-field expression não renderiza emojis no MapLibre RN)
+- Layer props em MapLibre v11: `paint` e `layout` separados, camelCase (não style prop)
+- Heatmap usa `<Layer type="heatmap" paint={{...}} />` (HeatmapLayer não existe em v11)
+- RPC function resolve problema de geom retornando WKB binary em vez de string
+- Cor do BotaoAssalto: #7F1D1D (vermelho escudo) para diferenciar de BotaoAlerta
+
+### Problemas resolvidos
+- `geom.replace is not a function`: resolvido criando RPC que usa ST_X/ST_Y
+- `HeatmapLayer is undefined`: resolvido usando `<Layer type="heatmap" />`
+- `text-color is not a valid MapLibre layer style`: resolvido separando paint/layout em props camelCase
+- SymbolLayer não renderiza emojis: resolvido usando Marker + Text
+- Botões sobrepondo sheets: resolvido com state `sheetAberto` e prop `visivel`
+
+### Pendências
+- Warning "Invalid geometry in line layer" — não crítico
+- Implementar Aviso de clima (Open-Meteo) — próximo item do roadmap
+
+### Próximo passo
+- Implementar integração com Open-Meteo para alertas de clima adverse

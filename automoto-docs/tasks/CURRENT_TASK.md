@@ -7,25 +7,38 @@
 
 ## Tarefa atual
 
-**O que:** Próxima feature do MVP — Mapa de Calor de Assaltos
+**O que:** Aviso de clima (Open-Meteo)
 
 **Módulo:** Radar
 
-**Fase do roadmap:** Fase 1 — MVP Core
+**Fase do roadmap:** Fase 1 — MVP Core, item 7
 
 ---
 
 ## Critério de pronto
 
-- [ ] Botão para reportar assalto no mapa
-- [ ] Dados salvos no Supabase com coordenada GPS + timestamp
-- [ ] Heatmap exibido no mapa usando HeatmapLayer
-- [ ] Decay temporal: ocorrências antigas pesam menos
+- [ ] Consulta à API Open-Meteo com coordenadas do usuário
+- [ ] Exibição de previsão meteorológica na tela do mapa
+- [ ] Alertas visuais de clima adverso
+- [ ] Cache inteligente para evitar requisições excessivas
 - [ ] Testado no Android físico
 
 ---
 
-## Status do Radar da Via (concluído)
+## Status do Radar de Assaltos (concluído em 17/04/2026)
+
+- [x] Botão para reportar assalto no mapa (BotaoAssalto)
+- [x] Bottom sheet de confirmação de assalto (SheetAssalto)
+- [x] Tipo 'assalto' adicionado ao enum tipo_alerta_via
+- [x] RPC function assaltos_para_heatmap para extrair coordenadas
+- [x] Hook useHeatmap com decay temporal (7 dias)
+- [x] Heatmap renderizado com Layer type="heatmap" e paint prop
+- [x] Animação de fade+scale nos botões quando sheet abre
+- [x] Emojis diferentes por tipo de alerta no mapa (Marker + Text)
+
+---
+
+## Status do Radar da Via (concluído em 12/04/2026)
 
 - [x] Botão flutuante no mapa para reportar alerta (BotaoAlerta)
 - [x] Bottom sheet com categorias: óleo, areia, buraco, obra, enchente, acidente, outro

@@ -8,12 +8,12 @@
 
 | # | Feature                        | Módulo   | Status     | Arquivo de spec                        |
 |---|--------------------------------|----------|------------|----------------------------------------|
-| 1 | Setup monorepo + Expo + MapLibre | Infra   | `pendente` | `docs/architecture/OVERVIEW.md`        |
-| 2 | Auth por email (Supabase)      | Auth     | `pendente` | —                                      |
-| 3 | Onboarding + cadastro de moto  | Garagem  | `pendente` | `docs/modules/MODULE_GARAGEM.md`       |
+| 1 | Setup monorepo + Expo + MapLibre | Infra   | `concluído` | `docs/architecture/OVERVIEW.md`        |
+| 2 | Auth por email (Supabase)      | Auth     | `concluído` | —                                      |
+| 3 | Onboarding + cadastro de moto  | Garagem  | `concluído` | `docs/modules/MODULE_GARAGEM.md`       |
 | 4 | Garagem: inventário de mods    | Garagem  | `pendente` | `docs/modules/MODULE_GARAGEM.md`       |
-| 5 | Radar: alertas da via (Waze)   | Radar    | `pendente` | `docs/modules/MODULE_RADAR.md`         |
-| 6 | Radar: mapa de calor assaltos  | Radar    | `pendente` | `docs/modules/MODULE_RADAR.md`         |
+| 5 | Radar: alertas da via (Waze)   | Radar    | `concluído` | `docs/modules/MODULE_RADAR.md`         |
+| 6 | Radar: mapa de calor assaltos  | Radar    | `concluído` | `docs/modules/MODULE_RADAR.md`         |
 | 7 | Aviso de clima (Open-Meteo)    | Radar    | `pendente` | `docs/modules/MODULE_RADAR.md`         |
 | 8 | Dossiê de Procedência (PDF)    | Garagem  | `pendente` | `docs/modules/MODULE_GARAGEM.md`       |
 
