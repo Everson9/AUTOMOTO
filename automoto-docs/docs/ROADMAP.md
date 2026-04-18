@@ -14,7 +14,7 @@
 | 4 | Garagem: inventário de mods    | Garagem  | `pendente` | `docs/modules/MODULE_GARAGEM.md`       |
 | 5 | Radar: alertas da via (Waze)   | Radar    | `concluído` | `docs/modules/MODULE_RADAR.md`         |
 | 6 | Radar: mapa de calor assaltos  | Radar    | `concluído` | `docs/modules/MODULE_RADAR.md`         |
-| 7 | Aviso de clima (Open-Meteo)    | Radar    | `pendente` | `docs/modules/MODULE_RADAR.md`         |
+| 7 | Aviso de clima (Open-Meteo)    | Radar    | `concluído` | `docs/modules/MODULE_RADAR.md`         |
 | 8 | Dossiê de Procedência (PDF)    | Garagem  | `pendente` | `docs/modules/MODULE_GARAGEM.md`       |
 
 ---

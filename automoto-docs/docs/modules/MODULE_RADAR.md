@@ -139,6 +139,25 @@ function deveAlertar(previsao: PrevisaoHoraria[]): boolean {
 }
 ```
 
+### Decisão de UX: Aviso de clima
+
+O aviso de chuva é implementado como **banner sutil no mapa**, não como notificação push.
+
+**Motivo:** Notificações push exigem infraestrutura mais complexa (Expo Push + serviço em background). Para o MVP, o banner no mapa é suficiente e menos intrusivo.
+
+**Características do banner:**
+- Tom amigável: `"🌧️ Chuva possível em ~1h — lembra da capa?"`
+- Aparece apenas quando o app está aberto no mapa
+- Some automaticamente após 8 segundos ou ao tocar no X
+- Não bloqueia interação com o mapa
+- Re-verifica a cada 30 minutos
+
+**Notificações push** ficam para a **Fase 2**, quando implementarmos alertas de proximidade em tempo real. Exemplos de casos de uso:
+- "Vai chover amanhã cedo — prepara a capa" (noite anterior)
+- "Em 1h pode chover — você está na rua?" (app em background)
+
+Requer: Expo Push + Edge Function com agendamento no Supabase (verificar previsão periodicamente e disparar push se probabilidade >= 60%).
+
 ---
 
 ## UX crítica: interface projetada para luvas

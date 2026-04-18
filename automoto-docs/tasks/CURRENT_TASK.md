@@ -7,21 +7,34 @@
 
 ## Tarefa atual
 
-**O que:** Aviso de clima (Open-Meteo)
+**O que:** Garagem: inventário de mods (customizações)
 
-**Módulo:** Radar
+**Módulo:** Garagem
 
-**Fase do roadmap:** Fase 1 — MVP Core, item 7
+**Fase do roadmap:** Fase 1 — MVP Core, item 4
 
 ---
 
 ## Critério de pronto
 
-- [ ] Consulta à API Open-Meteo com coordenadas do usuário
-- [ ] Exibição de previsão meteorológica na tela do mapa
-- [ ] Alertas visuais de clima adverso
-- [ ] Cache inteligente para evitar requisições excessivas
+- [ ] Tela de listagem de mods de uma moto
+- [ ] Tela de adicionar mod com fotos antes/depois
+- [ ] Upload de fotos para Supabase Storage
+- [ ] Persistência na tabela `mods` do Supabase
+- [ ] Navegação entre GaragemHomeScreen ↔ ModsListScreen ↔ AdicionarModScreen
 - [ ] Testado no Android físico
+
+---
+
+## Status do Aviso de Clima (concluído em 18/04/2026)
+
+- [x] climaService.ts criado (wrapper Open-Meteo)
+- [x] useClima.ts com lógica de intensidade (fraca/moderada/forte por precipitacaoMm)
+- [x] BannerClima com gesto arrastar para cima + fechar com X + timer 30s
+- [x] ClimaIconAnimado com animação de balanço no header
+- [x] Mensagens amigáveis por intensidade de chuva
+- [x] Lógica real ativa, sem modo teste
+- [x] console.logs temporários removidos
 
 ---
 
@@ -54,19 +67,20 @@
 ---
 
 ## Arquivos principais
-apps/mobile/app/(tabs)/index.tsx              → tela do mapa
-apps/mobile/src/screens/Mapa/useMapa.ts       → lógica de alertas
-apps/mobile/src/components/BotaoAlerta/       → botão flutuante
-apps/mobile/src/components/SheetAlerta/       → bottom sheet
-apps/mobile/app/_layout.tsx                   → GestureHandlerRootView + auth
+
+apps/mobile/app/(tabs)/garagem.tsx          → tela da garagem (criar)
+apps/mobile/src/screens/Garagem/           → componentes da Garagem
+apps/mobile/src/hooks/useGaragem.ts        → hook de gerenciamento de moto
+apps/mobile/src/hooks/useMods.ts           → hook de gerenciamento de mods
+apps/mobile/src/components/ModCard/        → card de customização
 
 ---
 
 ## Contexto necessário
 
-- [ ] `docs/modules/MODULE_RADAR.md`
-- [ ] `docs/architecture/MAPLIBRE_GUIDE.md`
-- [ ] `SKILLS.md` → seções 3, 4
+- [ ] `docs/modules/MODULE_GARAGEM.md`
+- [ ] `docs/database/SCHEMA.md`
+- [ ] `docs/architecture/SUPABASE_GUIDE.md`
 
 ---
 
@@ -90,6 +104,8 @@ apps/mobile/app/_layout.tsx                   → GestureHandlerRootView + auth
 | 11/04/26 | Radar da Via: botão, sheet, alertas no Supabase  | app/(tabs)/index.tsx, useMapa.ts, BotaoAlerta, SheetAlerta |
 | 12/04/26 | Correções: GestureHandler, SheetAlerta, app.json | app/_layout.tsx, SheetAlerta/index.tsx, app.json |
 | 12/04/26 | MapLibre v11: migração completa da API, mapa funcionando com ruas | app/(tabs)/index.tsx |
+| 17/04/26 | Heatmap de assaltos + BotaoAssalto + SheetAssalto | useHeatmap.ts, BotaoAssalto, SheetAssalto |
+| 18/04/26 | Aviso de clima Open-Meteo + BannerClima + ClimaIconAnimado | climaService.ts, useClima.ts, BannerClima, ClimaIconAnimado |
 
 ---
 
@@ -97,10 +113,9 @@ apps/mobile/app/_layout.tsx                   → GestureHandlerRootView + auth
 Leia os seguintes arquivos antes de começar:
 
 tasks/CURRENT_TASK.md
-docs/modules/MODULE_RADAR.md
-docs/architecture/MAPLIBRE_GUIDE.md
-apps/mobile/app/(tabs)/index.tsx
-SKILLS.md (seções 3, 4)
+docs/modules/MODULE_GARAGEM.md
+docs/database/SCHEMA.md
+docs/architecture/SUPABASE_GUIDE.md
 
 Após ler, me mostre o que entendeu da tarefa e proponha
 a ordem de implementação antes de escrever qualquer código.

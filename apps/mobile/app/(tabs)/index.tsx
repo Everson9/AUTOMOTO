@@ -1,14 +1,17 @@
 import { Map, Camera, UserLocation, GeoJSONSource, Layer, Marker, TransformRequestManager } from '@maplibre/maplibre-react-native';
-import { View, StyleSheet, Text, ActivityIndicator, Alert, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, Text, ActivityIndicator, Alert, TouchableOpacity, Animated } from 'react-native';
 import { useEffect, useState, useRef, useCallback } from 'react';
 import * as Location from 'expo-location';
 import { router } from 'expo-router';
 import { useMapa, TipoAlerta } from '../../src/screens/Mapa/useMapa';
 import { useHeatmap } from '../../src/hooks/useHeatmap';
+import { useClima } from '../../src/hooks/useClima';
 import { BotaoAlerta } from '../../src/components/BotaoAlerta';
 import { BotaoAssalto } from '../../src/components/BotaoAssalto';
 import { SheetAlerta, SheetAlertaRef } from '../../src/components/SheetAlerta';
 import { SheetAssalto, SheetAssaltoRef } from '../../src/components/SheetAssalto';
+import { BannerClima } from '../../src/components/BannerClima';
+import { ClimaIconAnimado } from '../../src/components/ClimaIconAnimado';
 import { useAuthContext } from '../../src/hooks/AuthProvider';
 
 const STYLE_URL = 'https://tiles.openfreemap.org/styles/liberty';
@@ -19,6 +22,7 @@ export default function HomeScreen() {
   const [locationPermission, setLocationPermission] = useState<'granted' | 'denied' | 'undetermined'>('undetermined');
   const [loading, setLoading] = useState(true);
   const [sheetAberto, setSheetAberto] = useState(false);
+  const [avisoClimaTimedOut, setAvisoClimaTimedOut] = useState(false);
 
   const mapRef = useRef<any>(null);
   const cameraRef = useRef<any>(null);
@@ -27,6 +31,13 @@ export default function HomeScreen() {
 
   const { alertas, alertasGeoJSON, erro: alertasErro, reportarAlerta } = useMapa(location);
   const { heatmapData, erro: heatmapErro, refetch: refetchHeatmap } = useHeatmap(location);
+  const {
+    deveExibir: deveExibirAvisoClima,
+    mensagem: mensagemClima,
+    fecharAviso,
+    reabrirAviso,
+    foiFechado: avisoClimaFechado,
+  } = useClima(location);
   const { user } = useAuthContext();
 
   // Calcular iniciais do usuário para o avatar
@@ -107,7 +118,6 @@ export default function HomeScreen() {
       setSheetAberto(false);
       Alert.alert('Sucesso', 'Assalto reportado com sucesso!');
     } catch (error: any) {
-      console.error('[handleConfirmarAssalto]', error);
       Alert.alert('Erro', error.message || 'Erro ao reportar assalto');
     }
   }, [reportarAlerta, refetchHeatmap]);
@@ -119,7 +129,6 @@ export default function HomeScreen() {
       Alert.alert('Sucesso', 'Alerta reportado com sucesso!');
       sheetRef.current?.close();
     } catch (error: any) {
-      console.error('[handleSelectTipoAlerta]', error);
       Alert.alert('Erro', error.message || 'Erro ao reportar alerta');
     }
   }, [reportarAlerta]);
@@ -133,6 +142,21 @@ export default function HomeScreen() {
     setSheetAberto(false);
     sheetRef.current?.close();
   }, []);
+
+  // Handlers do aviso de clima
+  const handleFecharAvisoClima = useCallback(() => {
+    fecharAviso();
+    setAvisoClimaTimedOut(false);
+  }, [fecharAviso]);
+
+  const handleTimeoutAvisoClima = useCallback(() => {
+    setAvisoClimaTimedOut(true);
+  }, []);
+
+  const handleReabrirAvisoClima = useCallback(() => {
+    setAvisoClimaTimedOut(false);
+    reabrirAviso();
+  }, [reabrirAviso]);
 
   if (loading) {
     return (
@@ -153,8 +177,8 @@ export default function HomeScreen() {
         compassPosition={{ top: 100, right: 16 }}
         logo={false}
         attribution={false}
-        onDidFinishLoadingMap={() => console.log('[Mapa] carregou com sucesso')}
-        onDidFailLoadingMap={() => console.log('[Mapa] ERRO ao carregar')}
+        onDidFinishLoadingMap={() => {}}
+        onDidFailLoadingMap={() => {}}
       >
         <Camera
           ref={cameraRef}
@@ -246,14 +270,38 @@ export default function HomeScreen() {
       <BotaoAlerta onPress={handleReportarAlerta} visivel={!sheetAberto} />
       <BotaoAssalto onPress={handleReportarAssalto} visivel={!sheetAberto} />
 
-      {/* Botão de perfil */}
-      <TouchableOpacity
-        style={styles.perfilButton}
-        onPress={handlePerfil}
-        activeOpacity={0.7}
-      >
-        <Text style={styles.perfilButtonText}>{iniciais}</Text>
-      </TouchableOpacity>
+      {/* Header direito: ícone de clima + perfil */}
+      <View style={styles.headerRight}>
+        {/* Ícone de clima (aparece quando aviso foi fechado e ainda há previsão de chuva) */}
+        {deveExibirAvisoClima && (avisoClimaFechado || avisoClimaTimedOut) && (
+          <TouchableOpacity
+            style={styles.climaIconButton}
+            onPress={handleReabrirAvisoClima}
+            activeOpacity={0.7}
+            accessibilityLabel="Reabrir aviso de chuva"
+            accessibilityRole="button"
+          >
+            <ClimaIconAnimado size={20} />
+          </TouchableOpacity>
+        )}
+
+        {/* Botão de perfil */}
+        <TouchableOpacity
+          style={styles.perfilButton}
+          onPress={handlePerfil}
+          activeOpacity={0.7}
+        >
+          <Text style={styles.perfilButtonText}>{iniciais}</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Banner de aviso de chuva */}
+      <BannerClima
+        mensagem={mensagemClima}
+        visivel={deveExibirAvisoClima && !avisoClimaFechado && !avisoClimaTimedOut}
+        onClose={handleFecharAvisoClima}
+        onTimeout={handleTimeoutAvisoClima}
+      />
 
       <SheetAlerta
         ref={sheetRef}
@@ -318,10 +366,30 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     alignItems: 'center',
   },
-  perfilButton: {
+  headerRight: {
     position: 'absolute',
     top: 60,
     right: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  climaIconButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#1A1A1A',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#2D3748',
+    marginRight: 8,
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+  },
+  perfilButton: {
     width: 44,
     height: 44,
     borderRadius: 22,

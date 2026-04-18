@@ -383,3 +383,35 @@ markdown## Sessão — 12/04/2026
 
 ### Próximo passo
 - Implementar integração com Open-Meteo para alertas de clima adverse
+
+---
+
+## Sessão — 18/04/2026
+
+### O que foi feito
+- climaService.ts criado (wrapper Open-Meteo API para previsão horária)
+- useClima.ts com lógica de intensidade de chuva (fraca < 1mm, moderada 1-5mm, forte > 5mm)
+- BannerClima com animação slide down/up, gesto arrastar para cima (60px threshold), botão X, timer 30s
+- ClimaIconAnimado com animação de balanço suave (-10° a +10°, 1.5s por ciclo, useNativeDriver: true)
+- Mensagens amigáveis por intensidade: fraca, moderada, forte
+- Lógica real ativa — estado de teste removido, useEffects de busca e polling reabilitados
+- console.logs temporários removidos de useClima.ts e index.tsx
+
+### Decisões tomadas
+- Open-Meteo API gratuita, sem API key
+- Banner aparece quando probabilidade de chuva >= 60% nas próximas 2 horas
+- Intensidade baseada em precipitacaoMm (< 1mm fraca, 1-5mm moderada, > 5mm forte)
+- Polling a cada 30 minutos para re-verificar previsão
+- Banner some após 30 segundos automaticamente (onTimeout)
+- Ícone 🌧️ no header aparece quando banner fechado, permite reabrir
+
+### Arquivos criados/modificados
+- apps/mobile/src/services/climaService.ts
+- apps/mobile/src/hooks/useClima.ts
+- apps/mobile/src/components/BannerClima/index.tsx
+- apps/mobile/src/components/ClimaIconAnimado/index.tsx
+- apps/mobile/app/(tabs)/index.tsx
+- automoto-docs/docs/modules/MODULE_RADAR.md
+
+### Próximo passo
+- Implementar Garagem: inventário de mods (item 4 da Fase 1)
