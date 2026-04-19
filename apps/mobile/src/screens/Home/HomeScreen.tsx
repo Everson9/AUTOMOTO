@@ -137,6 +137,13 @@ export default function HomeScreen() {
     setNovoKm('');
   }, []);
 
+  // Editar moto (navegar para tela de edição)
+  const handleEditarMoto = useCallback(() => {
+    if (moto) {
+      router.push(`/garagem/editar-moto?id=${moto.id}`);
+    }
+  }, [router, moto]);
+
   // Renderizar card da moto
   const renderCardMoto = () => {
     if (!moto) {
@@ -147,7 +154,7 @@ export default function HomeScreen() {
           </Text>
           <TouchableOpacity
             style={styles.cardMotoEmptyButton}
-            onPress={() => router.push('/cadastrar-moto')}
+            onPress={() => router.push('/garagem/cadastrar-moto')}
             activeOpacity={0.7}
           >
             <Text style={styles.cardMotoEmptyButtonText}>Cadastrar moto</Text>
@@ -176,7 +183,7 @@ export default function HomeScreen() {
           </Text>
           <Text style={styles.motoPlaca}>{moto.placa}</Text>
 
-          {/* KM editável */}
+          {/* KM editável + botão editar moto */}
           <View style={styles.motoKmContainer}>
             {editandoKm ? (
               <View style={styles.motoKmEditContainer}>
@@ -199,20 +206,29 @@ export default function HomeScreen() {
                     <Text style={styles.motoKmSaveText}>✓</Text>
                   )}
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.motoKmCancelButton} onPress={handleCancelarEdicao}>
+                <TouchableOpacity style={styles.motoKmCancelButton} onPress={handleCancelarEdicaoKm}>
                   <Text style={styles.motoKmCancelText}>✕</Text>
                 </TouchableOpacity>
               </View>
             ) : (
-              <TouchableOpacity
-                style={styles.motoKmDisplay}
-                onPress={handleIniciarEdicaoKm}
-                activeOpacity={0.7}
-              >
-                <Text style={styles.motoKmLabel}>KM</Text>
-                <Text style={styles.motoKmValue}>{moto.km_atual.toLocaleString('pt-BR')}</Text>
-                <Text style={styles.motoKmEdit}>✏️</Text>
-              </TouchableOpacity>
+              <View style={styles.motoKmRow}>
+                <TouchableOpacity
+                  style={styles.motoKmDisplay}
+                  onPress={handleIniciarEdicaoKm}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.motoKmLabel}>KM</Text>
+                  <Text style={styles.motoKmValue}>{moto.km_atual.toLocaleString('pt-BR')}</Text>
+                  <Text style={styles.motoKmEdit}>✏️</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.motoEditButton}
+                  onPress={handleEditarMoto}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.motoEditIcon}>⚙️</Text>
+                </TouchableOpacity>
+              </View>
             )}
           </View>
 
@@ -513,6 +529,11 @@ const styles = StyleSheet.create({
   motoKmContainer: {
     marginBottom: 8,
   },
+  motoKmRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
   motoKmDisplay: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -568,6 +589,12 @@ const styles = StyleSheet.create({
   motoKmCancelText: {
     fontSize: 14,
     color: '#9CA3AF',
+  },
+  motoEditButton: {
+    padding: 4,
+  },
+  motoEditIcon: {
+    fontSize: 16,
   },
   motoStatusBadge: {
     flexDirection: 'row',

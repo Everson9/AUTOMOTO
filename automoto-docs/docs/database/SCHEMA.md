@@ -437,6 +437,43 @@ AS $$
 $$;
 ```
 
+### `ativar_moto` — define a moto ativa do usuário
+
+```sql
+-- Ativa uma moto específica e desativa as demais do mesmo usuário
+-- Usado quando o usuário tem múltiplas motos e quer trocar a ativa
+CREATE OR REPLACE FUNCTION public.ativar_moto(p_moto_id UUID)
+RETURNS VOID
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+  -- Verifica se a moto pertence ao usuário autenticado
+  IF NOT EXISTS (
+    SELECT 1 FROM public.motos
+    WHERE id = p_moto_id AND user_id = auth.uid()
+  ) THEN
+    RAISE EXCEPTION 'Moto não encontrada ou não pertence ao usuário';
+  END IF;
+
+  -- Desativa todas as motos do usuário
+  UPDATE public.motos
+  SET ativa = FALSE
+  WHERE user_id = auth.uid();
+
+  -- Ativa a moto especificada
+  UPDATE public.motos
+  SET ativa = TRUE
+  WHERE id = p_moto_id;
+END;
+$$;
+```
+
+**Uso no cliente:**
+```typescript
+const { error } = await supabase.rpc('ativar_moto', { p_moto_id: motoId });
+```
+
 ---
 
 ## Índices críticos para performance

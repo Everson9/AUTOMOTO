@@ -1,4 +1,4 @@
-import { Map, Camera, UserLocation, GeoJSONSource, Layer, Marker, TransformRequestManager } from '@maplibre/maplibre-react-native';
+import { Map, Camera, GeoJSONSource, Layer, Marker, TransformRequestManager } from '@maplibre/maplibre-react-native';
 import { View, StyleSheet, Text, ActivityIndicator, Alert, TouchableOpacity, Animated } from 'react-native';
 import { useEffect, useState, useRef, useCallback } from 'react';
 import * as Location from 'expo-location';
@@ -12,6 +12,7 @@ import { SheetAlerta, SheetAlertaRef } from '../../src/components/SheetAlerta';
 import { SheetAssalto, SheetAssaltoRef } from '../../src/components/SheetAssalto';
 import { BannerClima } from '../../src/components/BannerClima';
 import { ClimaIconAnimado } from '../../src/components/ClimaIconAnimado';
+import { MotoMarker } from '../../src/components/MotoMarker';
 import { useAuthContext } from '../../src/hooks/AuthProvider';
 
 const STYLE_URL = 'https://tiles.openfreemap.org/styles/liberty';
@@ -231,6 +232,7 @@ export default function HomeScreen() {
             <Layer
               id="heatmap-layer"
               type="heatmap"
+              filter={['==', ['geometry-type'], 'Point']}
               paint={{
                 heatmapColor: [
                   'interpolate',
@@ -258,11 +260,11 @@ export default function HomeScreen() {
           </GeoJSONSource>
         )}
 
-        {locationPermission === 'granted' && (
-          <UserLocation
-            animated={true}
-            accuracy={false}
-            heading={true}
+        {/* Marcador da posição do usuário (ícone da moto) */}
+        {locationPermission === 'granted' && location && (
+          <MotoMarker
+            coordinate={[location.coords.longitude, location.coords.latitude]}
+            heading={location.coords.heading ?? 0}
           />
         )}
       </Map>

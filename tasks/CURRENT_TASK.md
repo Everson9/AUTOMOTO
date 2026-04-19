@@ -2,45 +2,44 @@
 
 ---
 
-## Fase 1.5, Item 3 — Editar moto + upload de foto real
+## Fase 1.5, Item 6 — Ícones SVG customizados por tipo de alerta
 
 ### Objetivo
-Permitir que o usuário edite os dados da moto cadastrada e faça upload de uma foto real da moto.
+Substituir os emojis atuais dos alertas no mapa por ícones SVG customizados para cada tipo de alerta.
+
+### Contexto atual
+- Os alertas são exibidos com emojis: `🛢️` (óleo), `🏖️` (areia), `🕳️` (buraco), etc.
+- Mapa renderiza via `Marker` do MapLibre v11 com `lngLat`
+- Componente está em `app/(tabs)/radar.tsx` (linhas 198-224)
+
+### Tipos de alerta
+| Tipo | Emoji atual | SVG sugerido |
+|------|------------|--------------|
+| oleo | 🛢️ | Gota de óleo |
+| areia | 🏖️ | Montanha de areia |
+| buraco | 🕳️ | Buraco na rua |
+| obra | 🚧 | Cone de obra |
+| enchente | 🌊 | Ondas de água |
+| acidente | 💥 | Carro batido |
+| assalto | 🚨 | Sirene/alerta |
+| outro | ❓ | Interrogação |
 
 ### Arquivos principais
-- `apps/mobile/src/screens/Garagem/GaragemScreen.tsx` — tela da garagem
-- `apps/mobile/src/screens/Garagem/useGaragem.ts` — hook de dados
-- `apps/mobile/src/screens/EditarMoto/` — nova tela de edição (criar)
-- `apps/mobile/app/editar-moto.tsx` — rota de edição (criar)
+- `app/(tabs)/radar.tsx` — renderização dos markers de alerta
+- `src/screens/Mapa/useMapa.ts` — hook que retorna `alertas`
+- `src/components/` — criar novo componente `AlertaIcon/`
 
 ### Requisitos
-1. [ ] Criar tela `EditarMotoScreen` com formulário de edição
-2. [ ] Implementar upload de foto usando Supabase Storage
-3. [ ] Adicionar botão "Editar" no card da moto na Garagem
-4. [ ] Adicionar botão "Editar" no card da moto na Home
-5. [ ] Atualizar `useGaragem.ts` com função `atualizarMoto()`
-6. [ ] Atualizar `useHome.ts` para refletir mudanças
-
-### Upload de foto
-- Bucket: `motos-fotos` no Supabase Storage
-- Formato: `{user_id}/{moto_id}.jpg`
-- Redimensionar para max 800x800px antes do upload
-- Usar `expo-image-picker` para seleção de foto
-
-### Campos editáveis
-- Foto da moto
-- Modelo (texto)
-- Marca (texto)
-- Ano (número)
-- Cor (texto)
-- Placa (texto, apenas visualização ou edição limitada?)
+1. [ ] Criar SVGs para cada tipo de alerta
+2. [ ] Componente `AlertaIcon` com prop `tipo`
+3. [ ] Substituir emojis pelos SVGs no mapa
+4. [ ] Manter tamanho consistente (~32px)
+5. [ ] Cores distintas por tipo para fácil identificação
 
 ### Critérios de pronto
-- [ ] Usuário consegue editar todos os campos da moto
-- [ ] Upload de foto funciona com galeria e câmera
-- [ ] Foto aparece no card da moto (Home e Garagem)
-- [ ] Dados atualizados persistem no Supabase
-- [ ] Navegação funciona: Garagem → Editar → Salvar → voltar
+- [ ] Cada tipo de alerta tem seu ícone SVG
+- [ ] Ícones são visíveis e distintos no mapa
+- [ ] Performance mantida
 
 ### Status
 `pendente` — aguardando início

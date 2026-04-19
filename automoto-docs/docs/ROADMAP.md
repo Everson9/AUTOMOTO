@@ -24,12 +24,12 @@
 **Critério de avanço:** Todos os itens concluídos + app publicado em beta fechado
 
 | # | Feature                                           | Módulo      | Status     |
-|---|---------------------------------------------------|-------------|------------|
+|---|---------------------------------------------------|-------------|-------------|
 | 1 | Criação da logo Automoto                          | Identidade  | `concluído` |
 | 2 | Home contextual (substituir mapa como tela inicial) | UX        | `concluído` |
-| 3 | Editar moto + upload de foto real                 | Garagem     | `pendente` |
-| 4 | Cadastro de moto movido para dentro da Garagem (remover do onboarding) | Garagem | `pendente` |
-| 5 | Ícone da moto do usuário no mapa (substituir ponto azul) | Radar  | `pendente` |
+| 3 | Editar moto + upload de foto real                 | Garagem     | `concluído` |
+| 4 | Cadastro de moto movido para dentro da Garagem (remover do onboarding) | Garagem | `concluído` |
+| 5 | Ícone da moto do usuário no mapa (substituir ponto azul) | Radar  | `concluído` |
 | 6 | Ícones SVG customizados por tipo de alerta (substituir emojis) | Radar | `pendente` |
 | 7 | Notificações push básicas (alertas de proximidade) | Radar       | `pendente` |
 | 8 | Onboarding tutorial (primeira vez no app)         | UX          | `pendente` |

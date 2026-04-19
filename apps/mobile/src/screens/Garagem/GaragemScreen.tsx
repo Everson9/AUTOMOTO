@@ -1,9 +1,9 @@
 // apps/mobile/src/screens/Garagem/GaragemScreen.tsx
 //
 // Tela principal da Garagem.
-// Exibe card da moto, KM editável e lista de mods.
+// Exibe card da moto ativa, lista de mods e suporte a múltiplas motos.
 
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -23,12 +23,74 @@ import { ModCard } from '../../components/ModCard';
 
 export default function GaragemScreen() {
   const router = useRouter();
-  const { moto, mods, loading, erro, refetch, atualizarKm } = useGaragem();
+  const { moto, motos, mods, loading, erro, refetch, atualizarKm, ativarMoto } = useGaragem();
   const [editandoKm, setEditandoKm] = useState(false);
   const [kmInput, setKmInput] = useState('');
   const [salvandoKm, setSalvandoKm] = useState(false);
 
-  // Rebuscar dados quando a tela ganhar foco (ex: voltar do adicionar mod)
+  // Handlers definidos com useCallback para uso consistente
+  const handleCadastrarMoto = useCallback(() => {
+    router.push('/garagem/cadastrar-moto');
+  }, [router]);
+
+  const handleEditarKm = useCallback(() => {
+    if (moto) {
+      setKmInput(moto.km_atual.toString());
+      setEditandoKm(true);
+    }
+  }, [moto]);
+
+  const handleSalvarKm = useCallback(async () => {
+    const novoKm = parseInt(kmInput, 10);
+    if (isNaN(novoKm) || novoKm < 0) {
+      Alert.alert('Erro', 'Digite um KM válido');
+      return;
+    }
+
+    setSalvandoKm(true);
+    try {
+      await atualizarKm(novoKm);
+      setEditandoKm(false);
+    } catch (err: any) {
+      Alert.alert('Erro', err.message || 'Erro ao atualizar KM');
+    } finally {
+      setSalvandoKm(false);
+    }
+  }, [kmInput, atualizarKm]);
+
+  const handleCancelarKm = useCallback(() => {
+    setEditandoKm(false);
+    setKmInput('');
+  }, []);
+
+  const handleGerarDossie = useCallback(() => {
+    router.push('/garagem/dossie');
+  }, [router]);
+
+  const handleEditarMoto = useCallback(() => {
+    if (moto) {
+      router.push(`/garagem/editar-moto?id=${moto.id}`);
+    }
+  }, [router, moto]);
+
+  const handleAdicionarMod = useCallback(() => {
+    router.push('/garagem/adicionar-mod');
+  }, [router]);
+
+  const handleEditarMod = useCallback((modId: string) => {
+    router.push(`/garagem/editar-mod?id=${modId}`);
+  }, [router]);
+
+  const handleTrocarMoto = useCallback(async (motoId: string) => {
+    try {
+      await ativarMoto(motoId);
+      Alert.alert('Sucesso', 'Moto ativada com sucesso!');
+    } catch (err: any) {
+      Alert.alert('Erro', err.message || 'Erro ao ativar moto');
+    }
+  }, [ativarMoto]);
+
+  // Rebuscar dados quando a tela ganhar foco
   useFocusEffect(
     React.useCallback(() => {
       refetch();
@@ -55,61 +117,25 @@ export default function GaragemScreen() {
     );
   }
 
+  // Estado vazio - nenhuma moto cadastrada
   if (!moto) {
     return (
       <View style={styles.emptyContainer}>
+        <MotoIlustration tipo="default" size={100} color="#6B7280" />
         <Text style={styles.emptyTitle}>Nenhuma moto cadastrada</Text>
         <Text style={styles.emptySubtitle}>
           Adicione sua moto para começar a usar o Automoto
         </Text>
+        <TouchableOpacity
+          style={styles.addButton}
+          onPress={handleCadastrarMoto}
+          activeOpacity={0.7}
+        >
+          <Text style={styles.addButtonText}>Adicionar moto</Text>
+        </TouchableOpacity>
       </View>
     );
   }
-
-  const handleEditarKm = () => {
-    setKmInput(moto.km_atual.toString());
-    setEditandoKm(true);
-  };
-
-  const handleSalvarKm = async () => {
-    const novoKm = parseInt(kmInput, 10);
-    if (isNaN(novoKm) || novoKm < 0) {
-      Alert.alert('Erro', 'Digite um KM válido');
-      return;
-    }
-
-    setSalvandoKm(true);
-    try {
-      await atualizarKm(novoKm);
-      setEditandoKm(false);
-    } catch (err: any) {
-      Alert.alert('Erro', err.message || 'Erro ao atualizar KM');
-    } finally {
-      setSalvandoKm(false);
-    }
-  };
-
-  const handleCancelarKm = () => {
-    setEditandoKm(false);
-    setKmInput('');
-  };
-
-  const handleGerarDossie = () => {
-    router.push('/garagem/dossie');
-  };
-
-  const handleEditarMoto = () => {
-    // TODO: navegar para tela de edição
-    Alert.alert('Em breve', 'Tela de edição em desenvolvimento');
-  };
-
-  const handleAdicionarMod = () => {
-    router.push('/garagem/adicionar-mod');
-  };
-
-  const handleEditarMod = (modId: string) => {
-    router.push(`/garagem/editar-mod?id=${modId}`);
-  };
 
   const tipoMoto = (moto.tipo as TipoMoto) || 'default';
 
@@ -199,6 +225,50 @@ export default function GaragemScreen() {
             </TouchableOpacity>
           </View>
         </View>
+
+        {/* Seção de Motos (se houver mais de uma) */}
+        {motos.length > 1 && (
+          <View style={styles.motosSection}>
+            <Text style={styles.motosSectionTitle}>Outras motos</Text>
+            {motos.filter(m => m.id !== moto.id).map(m => (
+              <TouchableOpacity
+                key={m.id}
+                style={styles.motoItem}
+                onPress={() => handleTrocarMoto(m.id)}
+                activeOpacity={0.7}
+              >
+                <View style={styles.motoItemLeft}>
+                  {m.foto_url ? (
+                    <Image source={{ uri: m.foto_url }} style={styles.motoItemFoto} />
+                  ) : (
+                    <View style={styles.motoItemPlaceholder}>
+                      <MotoIlustration tipo={(m.tipo as TipoMoto) || 'default'} size={32} color="#6B7280" />
+                    </View>
+                  )}
+                  <View style={styles.motoItemInfo}>
+                    <Text style={styles.motoItemModelo}>
+                      {m.marca ? `${m.marca} ` : ''}{m.modelo}
+                    </Text>
+                    <Text style={styles.motoItemPlaca}>{m.placa}</Text>
+                  </View>
+                </View>
+                <Text style={styles.motoItemActivate}>Ativar</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        )}
+
+        {/* Botão adicionar moto */}
+        {motos.length > 0 && (
+          <TouchableOpacity
+            style={styles.addMotoButton}
+            onPress={handleCadastrarMoto}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.addMotoIcon}>+</Text>
+            <Text style={styles.addMotoText}>Adicionar outra moto</Text>
+          </TouchableOpacity>
+        )}
 
         {/* Seção de Mods */}
         <View style={styles.modsSection}>
@@ -292,12 +362,25 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '600',
     color: '#FFFFFF',
+    marginTop: 16,
     marginBottom: 8,
   },
   emptySubtitle: {
     fontSize: 14,
     color: '#9CA3AF',
     textAlign: 'center',
+    marginBottom: 24,
+  },
+  addButton: {
+    backgroundColor: '#F97316',
+    borderRadius: 10,
+    paddingHorizontal: 24,
+    paddingVertical: 14,
+  },
+  addButtonText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#1A1A1A',
   },
   content: {
     padding: 16,
@@ -435,6 +518,91 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#1A1A1A',
   },
+  // Motos section
+  motosSection: {
+    marginBottom: 16,
+  },
+  motosSectionTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#9CA3AF',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: 12,
+  },
+  motoItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#1A1A1A',
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: '#2D2D2D',
+  },
+  motoItemLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  motoItemFoto: {
+    width: 48,
+    height: 48,
+    borderRadius: 8,
+    backgroundColor: '#2D2D2D',
+  },
+  motoItemPlaceholder: {
+    width: 48,
+    height: 48,
+    borderRadius: 8,
+    backgroundColor: '#2D2D2D',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  motoItemInfo: {
+    marginLeft: 12,
+  },
+  motoItemModelo: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#FFFFFF',
+  },
+  motoItemPlaca: {
+    fontSize: 13,
+    color: '#9CA3AF',
+    marginTop: 2,
+  },
+  motoItemActivate: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#F97316',
+  },
+  // Add moto button
+  addMotoButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#1A1A1A',
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: '#2D2D2D',
+    borderStyle: 'dashed',
+    marginBottom: 20,
+  },
+  addMotoIcon: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#F97316',
+    marginRight: 8,
+  },
+  addMotoText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#F97316',
+  },
+  // Mods section
   modsSection: {
     marginTop: 8,
   },

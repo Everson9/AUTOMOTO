@@ -13,7 +13,11 @@
       "Bash(dir /s /b \"C:\\\\Users\\\\versi\\\\Documents\\\\GitHub\\\\AUTOMOTO\\\\ROADMAP.md\" \"C:\\\\Users\\\\versi\\\\Documents\\\\GitHub\\\\AUTOMOTO\\\\CURRENT_TASK.md\" \"C:\\\\Users\\\\versi\\\\Documents\\\\GitHub\\\\AUTOMOTO\\\\SESSION_LOG.md\")",
       "Bash(dir:*)",
       "Bash(ls:*)",
-      "Bash(npx expo:*)"
+      "Bash(npx expo:*)",
+      "Bash(find apps/mobile/app -name *.tsx -type f)",
+      "Bash(find apps/mobile -name *.tsx -path */app/*)",
+      "Bash(ls -la apps/mobile/app/\\\\\\(tabs\\\\\\)/)",
+      "Bash(find apps/mobile -type f -name *.tsx)"
     ]
   }
 }
