@@ -198,3 +198,70 @@ Implementação final do marcador customizado da posição do usuário no mapa u
 - [x] Usuário vê sua moto no mapa (não ponto azul)
 - [x] Ícone aponta na direção do movimento
 - [x] Marcador fica acima dos outros elementos do mapa
+
+---
+
+## 2026-04-19 — MaterialCommunityIcons nos Alertas + DetalheAlertaSheet
+
+### Resumo
+Substituição de emojis por ícones MaterialCommunityIcons nos alertas do mapa e da Home, implementação do sheet de detalhes com confirmar/negar, e proteções contra duplicação.
+
+### Novos arquivos criados
+- `src/components/AlertaMarker/index.tsx` — Marcador de alerta com ícone + cor por tipo
+- `src/components/SheetDetalheAlerta/index.tsx` — Bottom sheet de detalhes do alerta
+- `src/hooks/useDetalheAlerta.ts` — Hook para confirmar/negar alertas com AsyncStorage
+- `supabase/migrations/20260419100000_create_alertas_rpc.sql` — RPCs para verificação de duplicados
+
+### Arquivos modificados
+- `app/(tabs)/radar.tsx` — Integração do AlertaMarker, SheetDetalheAlerta, zoom fix
+- `src/screens/Home/HomeScreen.tsx` — Ícones MaterialCommunityIcons na seção de alertas
+- `src/components/SheetAlerta/index.tsx` — Ícones MaterialCommunityIcons ao invés de emojis
+- `src/screens/Mapa/useMapa.ts` — Verificação de alerta duplicado via RPC
+
+### Mapeamento de ícones (ALERTA_CONFIG)
+| Tipo | Ícone | Cor |
+|------|-------|-----|
+| oleo | oil | #6B7280 (cinza) |
+| areia | weather-dust | #D97706 (âmbar) |
+| buraco | alert-circle | #DC2626 (vermelho) |
+| obra | traffic-cone | #F97316 (laranja) |
+| enchente | waves | #2563EB (azul) |
+| acidente | car-emergency | #DC2626 (vermelho) |
+| assalto | shield-alert | #7F1D1D (vermelho escuro) |
+| outro | alert | #9CA3AF (cinza claro) |
+
+### Funcionalidades implementadas
+1. **AlertaMarker**: marcador com ícone MaterialCommunityIcons em fundo branco + borda colorida (52x52px)
+2. **SheetDetalheAlerta**: bottom sheet com tipo, confirmações, negações, botões confirmar/negar
+3. **Proteção de voto duplicado**: AsyncStorage armazena IDs votados, impede re-voto
+4. **Proteção de alerta duplicado**: RPC `verificar_alerta_duplicado` verifica raio de 100m
+5. **Desativação automática**: alerta desativado quando `negacoes >= 5 && negacoes > confirmacoes`
+
+### Fixes aplicados
+- **1 toque para abrir sheet**: `setTimeout(() => sheetRef?.expand(), 100)` garante que estado atualiza antes de expandir
+- **zoom maxZoom=20**: valor incorreto era 22, ajustado para 20
+- **zoomLevel inicial=17**: zoom inicial do mapa
+- **pointerEvents="none"**: View interna do AlertaMarker permite toque passar para Marker
+- **Ícones TypeScript**: `construction` e `car-crash` não existem → `traffic-cone` e `car-emergency`
+
+### RPCs criadas
+```sql
+-- Verificar alerta duplicado (mesmo tipo, raio 100m)
+CREATE FUNCTION verificar_alerta_duplicado(p_tipo, p_lat, p_lng, p_raio_metros)
+
+-- Incrementar confirmações
+CREATE FUNCTION incrementar_confirmacoes(alerta_id UUID)
+
+-- Incrementar negações
+CREATE FUNCTION incrementar_negacoes(alerta_id UUID)
+```
+
+### Critérios de pronto atendidos
+- [x] Alertas no mapa usam ícones (não emojis)
+- [x] Home exibe ícones (não emojis)
+- [x] SheetAlerta usa ícones (não emojis)
+- [x] Toque no alerta abre sheet de detalhes
+- [x] Usuário pode confirmar ou negar alerta
+- [x] Usuário não pode votar duas vezes no mesmo alerta
+- [x] Alerta duplicado incrementa confirmação em vez de criar novo
+- [x] Alerta com muitas negações é desativado automaticamente

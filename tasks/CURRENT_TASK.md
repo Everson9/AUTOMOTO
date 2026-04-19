@@ -2,44 +2,52 @@
 
 ---
 
-## Fase 1.5, Item 6 — Ícones SVG customizados por tipo de alerta
+## Fase 1.5, Item 7 — Notificações push básicas (alertas de proximidade)
 
 ### Objetivo
-Substituir os emojis atuais dos alertas no mapa por ícones SVG customizados para cada tipo de alerta.
+Implementar notificações push que alertam o usuário quando ele se aproxima de um alerta registrado por outro motociclista.
 
 ### Contexto atual
-- Os alertas são exibidos com emojis: `🛢️` (óleo), `🏖️` (areia), `🕳️` (buraco), etc.
-- Mapa renderiza via `Marker` do MapLibre v11 com `lngLat`
-- Componente está em `app/(tabs)/radar.tsx` (linhas 198-224)
+- Alertas já são exibidos no mapa via `AlertaMarker`
+- Usuário pode reportar alertas via `SheetAlerta`
+- Localização do usuário obtida via `expo-location`
+- Supabase já configurado com tabela `alertas_via`
 
-### Tipos de alerta
-| Tipo | Emoji atual | SVG sugerido |
-|------|------------|--------------|
-| oleo | 🛢️ | Gota de óleo |
-| areia | 🏖️ | Montanha de areia |
-| buraco | 🕳️ | Buraco na rua |
-| obra | 🚧 | Cone de obra |
-| enchente | 🌊 | Ondas de água |
-| acidente | 💥 | Carro batido |
-| assalto | 🚨 | Sirene/alerta |
-| outro | ❓ | Interrogação |
+### Requisitos funcionais
+1. Notificar quando usuário se aproxima de um alerta ativo (raio configurável, ex: 200m)
+2. Notificação inclui tipo do alerta e distância
+3. Usuário pode desativar notificações de alertas nas configurações
+4. Notificação abre o app no mapa centrado no alerta
 
-### Arquivos principais
-- `app/(tabs)/radar.tsx` — renderização dos markers de alerta
-- `src/screens/Mapa/useMapa.ts` — hook que retorna `alertas`
-- `src/components/` — criar novo componente `AlertaIcon/`
+### Stack sugerida
+- **Expo Notifications** — API de notificações locais
+- **TaskManager** — background task para monitorar localização
+- ** expo-location** — já instalado
 
-### Requisitos
-1. [ ] Criar SVGs para cada tipo de alerta
-2. [ ] Componente `AlertaIcon` com prop `tipo`
-3. [ ] Substituir emojis pelos SVGs no mapa
-4. [ ] Manter tamanho consistente (~32px)
-5. [ ] Cores distintas por tipo para fácil identificação
+### Arquivos a criar/modificar
+- `src/hooks/useNotificacoesAlerta.ts` — Hook para gerenciar notificações
+- `src/services/notificationService.ts` — Serviço de notificações locais
+- `app/(tabs)/radar.tsx` — Integração do hook de notificações
+- `src/screens/Configuracoes/ConfiguracoesScreen.tsx` — Toggle de notificações
+
+### Fluxo de background
+1. App registra background task para monitorar localização
+2. Quando localização muda, verificar se há alertas próximos
+3. Se houver alerta novo (não notificado antes), disparar notificação local
+4. Usuário toca na notificação → app abre no alerta
+
+### Desafios técnicos
+- Background location task no Android/iOS
+- Permissão de notificação
+- Persistir alertas já notificados (AsyncStorage)
+- Balancear frequência de verificação (bateria vs. utilidade)
 
 ### Critérios de pronto
-- [ ] Cada tipo de alerta tem seu ícone SVG
-- [ ] Ícones são visíveis e distintos no mapa
-- [ ] Performance mantida
+- [ ] Usuário recebe notificação ao se aproximar de alerta
+- [ ] Notificação mostra tipo e distância
+- [ ] Toque na notificação abre o app
+- [ ] Toggle para desativar notificações
+- [ ] Performance adequada (não drena bateria)
 
 ### Status
 `pendente` — aguardando início

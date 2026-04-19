@@ -30,7 +30,7 @@
 | 3 | Editar moto + upload de foto real                 | Garagem     | `concluído` |
 | 4 | Cadastro de moto movido para dentro da Garagem (remover do onboarding) | Garagem | `concluído` |
 | 5 | Ícone da moto do usuário no mapa (substituir ponto azul) | Radar  | `concluído` |
-| 6 | Ícones SVG customizados por tipo de alerta (substituir emojis) | Radar | `pendente` |
+| 6 | Ícones SVG customizados por tipo de alerta (substituir emojis) | Radar | `concluído` |
 | 7 | Notificações push básicas (alertas de proximidade) | Radar       | `pendente` |
 | 8 | Onboarding tutorial (primeira vez no app)         | UX          | `pendente` |
 | 9 | Navegação com rota no mapa (estilo Waze, OpenRouteService) | Radar | `pendente` |

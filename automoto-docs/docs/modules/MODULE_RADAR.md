@@ -187,6 +187,28 @@ Ao receber uma notificação push de alerta próximo:
 
 ---
 
+## Moderação de alertas (sistema de votos)
+
+### Implementação atual (MVP)
+- 1 voto por usuário por alerta (persistido via AsyncStorage)
+- Alerta desativado automaticamente quando: `negacoes >= 5 AND negacoes > confirmacoes`
+- Expiração natural por tempo (campo `expira_em`) como proteção adicional
+
+### Limitações do MVP
+- Usuário mal-intencionado pode criar múltiplas contas para negar alertas
+- Sem distinção de peso entre usuários novos e frequentes
+
+### Evolução planejada (Fase 2) — Sistema de reputação
+Inspirado no modelo do Waze:
+- Usuários frequentes e com histórico confiável têm peso maior no voto
+- Usuários novos têm peso menor (ex: 0.5x)
+- Quem nega alertas que depois são confirmados por muitos usuários perde reputação
+- Quem reporta alertas que são confirmados ganha reputação
+- Threshold de desativação passa a ser ponderado por reputação, não só contagem simples
+- Campo sugerido na tabela `profiles`: `reputacao DECIMAL DEFAULT 1.0`
+
+---
+
 ## Testes de aceitação
 
 - [ ] Mapa carrega com tiles do OpenFreeMap em 3s em 4G

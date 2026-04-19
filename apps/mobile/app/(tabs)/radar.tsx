@@ -38,10 +38,17 @@ export default function HomeScreen() {
   const [alertaSelecionado, setAlertaSelecionado] = useState<AlertaVia | null>(null);
   const [jaVotouEstado, setJaVotouEstado] = useState(false);
 
-  // Hook para confirmar/negar alertas (persiste votos no AsyncStorage)
-  const { confirmar: confirmarAlerta, negar: negarAlerta, jaVotou } = useDetalheAlerta();
+  // Handler para quando um alerta é desativado automaticamente
+  const handleAlertaDesativado = useCallback(() => {
+    refetchAlertas();
+  }, [refetchAlertas]);
 
-  const { alertas, alertasGeoJSON, erro: alertasErro, reportarAlerta } = useMapa(location);
+  // Hook para confirmar/negar alertas (persiste votos no AsyncStorage)
+  const { confirmar: confirmarAlerta, negar: negarAlerta, jaVotou } = useDetalheAlerta({
+    onAlertaDesativado: handleAlertaDesativado,
+  });
+
+  const { alertas, alertasGeoJSON, erro: alertasErro, reportarAlerta, refetch: refetchAlertas } = useMapa(location);
   const { heatmapData, erro: heatmapErro, refetch: refetchHeatmap } = useHeatmap(location);
   const {
     deveExibir: deveExibirAvisoClima,
