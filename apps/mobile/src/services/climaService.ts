@@ -20,6 +20,14 @@ export interface AlertaChuva {
   precipitacaoMm: number; // precipitação máxima esperada
 }
 
+// Clima atual para exibir na Home
+export interface ClimaAtual {
+  temperatura: number;
+  codigoTempo: number; // WMO weather code
+  descricao: string;
+  icone: string; // emoji do tempo
+}
+
 // Resposta bruta da API (tipagem parcial)
 interface OpenMeteoResponse {
   hourly: {
@@ -27,7 +35,38 @@ interface OpenMeteoResponse {
     precipitation_probability: number[];
     precipitation: number[];
   };
+  current?: {
+    temperature_2m: number;
+    weather_code: number;
+  };
 }
+
+// Mapeamento de códigos WMO para descrições e emojis
+const CODIGOS_TEMPO: Record<number, { descricao: string; icone: string }> = {
+  0: { descricao: 'Céu limpo', icone: '☀️' },
+  1: { descricao: 'Principalmente limpo', icone: '🌤️' },
+  2: { descricao: 'Parcialmente nublado', icone: '⛅' },
+  3: { descricao: 'Nublado', icone: '☁️' },
+  45: { descricao: 'Neblina', icone: '🌫️' },
+  48: { descricao: 'Neblina com geada', icone: '🌫️' },
+  51: { descricao: 'Garoa leve', icone: '🌦️' },
+  53: { descricao: 'Garoa moderada', icone: '🌦️' },
+  55: { descricao: 'Garoa intensa', icone: '🌧️' },
+  61: { descricao: 'Chuva leve', icone: '🌧️' },
+  63: { descricao: 'Chuva moderada', icone: '🌧️' },
+  65: { descricao: 'Chuva forte', icone: '🌧️' },
+  66: { descricao: 'Chuva congelante leve', icone: '🌨️' },
+  67: { descricao: 'Chuva congelante forte', icone: '🌨️' },
+  71: { descricao: 'Neve leve', icone: '🌨️' },
+  73: { descricao: 'Neve moderada', icone: '🌨️' },
+  75: { descricao: 'Neve forte', icone: '❄️' },
+  80: { descricao: 'Pancadas de chuva leve', icone: '🌦️' },
+  81: { descricao: 'Pancadas de chuva moderada', icone: '🌧️' },
+  82: { descricao: 'Pancadas de chuva forte', icone: '⛈️' },
+  95: { descricao: 'Tempestade', icone: '⛈️' },
+  96: { descricao: 'Tempestade com granizo', icone: '⛈️' },
+  99: { descricao: 'Tempestade forte com granizo', icone: '⛈️' },
+};
 
 /**
  * Busca previsão horária de chuva para uma localização.
@@ -107,5 +146,45 @@ export function calcularAlertaChuva(previsoes: PrevisaoHoraria[]): AlertaChuva |
     horasAte: Math.max(1, horasAte), // Mínimo 1h
     probabilidade: maxProbabilidade,
     precipitacaoMm: maxPrecipitacao,
+  };
+}
+
+/**
+ * Busca o clima atual para uma localização.
+ * @param lat Latitude
+ * @param lng Longitude
+ * @returns Dados do clima atual
+ */
+export async function buscarClimaAtual(
+  lat: number,
+  lng: number
+): Promise<ClimaAtual> {
+  const params = new URLSearchParams({
+    latitude: lat.toString(),
+    longitude: lng.toString(),
+    current: 'temperature_2m,weather_code',
+    timezone: 'America/Sao_Paulo',
+  });
+
+  const res = await fetch(`${OPEN_METEO_URL}?${params}`);
+
+  if (!res.ok) {
+    throw new Error(`Erro ao buscar clima atual: ${res.status}`);
+  }
+
+  const json: OpenMeteoResponse = await res.json();
+
+  if (!json.current) {
+    throw new Error('Dados de clima atual não disponíveis');
+  }
+
+  const { temperature_2m, weather_code } = json.current;
+  const infoTempo = CODIGOS_TEMPO[weather_code] || { descricao: 'Indefinido', icone: '🌡️' };
+
+  return {
+    temperatura: Math.round(temperature_2m),
+    codigoTempo: weather_code,
+    descricao: infoTempo.descricao,
+    icone: infoTempo.icone,
   };
 }

@@ -1,7 +1,7 @@
 # MODULE_IDENTIDADE.md — Identidade Visual do Automoto
 
 ## Logo
-- Status: pendente de criação
+- Status: criada (logo.png em apps/mobile/assets/images/)
 - Conceito: motociclismo urbano, tecnologia e segurança
 - Estilo: moderno, minimalista, funciona bem em dark e light
 - Formato final: SVG (para uso no app) + PNG (para stores e materiais)
@@ -23,9 +23,9 @@
 - Borda sutil: #2D2D2D
 
 ## Status de integração
-- [ ] Logo criada
-- [ ] Logo integrada nas telas de auth
-- [ ] Logo integrada na Home
+- [x] Logo criada
+- [x] Logo integrada nas telas de auth
+- [x] Logo integrada na Home
 - [ ] Logo integrada na Garagem
 - [ ] Dossiê PDF atualizado com logo real
 - [ ] Splash screen com logo

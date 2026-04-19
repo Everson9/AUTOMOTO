@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { supabase } from '../../lib/supabase';
+
+const logo = require('../../../assets/images/logo.png');
 
 export default function CadastroScreen() {
   const [nome, setNome] = useState('');
@@ -56,7 +58,7 @@ export default function CadastroScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
-        <Text style={styles.title}>Criar Conta</Text>
+        <Image source={logo} style={{ width: 240, height: 240, marginBottom: 32, alignSelf: 'center' }} resizeMode="contain" />
 
         <TextInput
           style={styles.input}
@@ -111,13 +113,6 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     paddingHorizontal: 20,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: '700',
-    textAlign: 'center',
-    marginBottom: 40,
-    color: '#FFFFFF',
   },
   input: {
     backgroundColor: '#1A1A1A',
