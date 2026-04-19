@@ -19,23 +19,13 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useSegments } from 'expo-router';
 import * as Location from 'expo-location';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useHome } from './useHome';
 import { MotoIlustration, TipoMoto } from '../../components/MotoIlustration';
 import { AtalhoCard } from '../../components/AtalhoCard';
+import { ALERTA_CONFIG } from '../../components/AlertaMarker';
 
 const logo = require('../../../assets/images/logo.png');
-
-// Mapeamento de tipos de alerta para emoji
-const EMOJI_ALERTA: Record<string, string> = {
-  oleo: '🛢️',
-  areia: '🏖️',
-  buraco: '🕳️',
-  obra: '🚧',
-  enchente: '🌊',
-  acidente: '💥',
-  assalto: '🚨',
-  outro: '❓',
-};
 
 // Formata distância para exibição
 function formatarDistancia(metros: number): string {
@@ -270,7 +260,7 @@ export default function HomeScreen() {
       return (
         <View style={styles.alertasEmpty}>
           <Text style={styles.alertasEmptyText}>
-            Nenhum alerta na região — pista limpa! 🤙
+            Nenhum alerta na região — pista limpa!
           </Text>
         </View>
       );
@@ -283,19 +273,26 @@ export default function HomeScreen() {
         style={styles.alertasList}
         contentContainerStyle={styles.alertasContent}
       >
-        {alertas.map((alerta) => (
-          <View key={alerta.id} style={styles.alertaItem}>
-            <Text style={styles.alertaEmoji}>
-              {EMOJI_ALERTA[alerta.tipo] || '📍'}
-            </Text>
-            <Text style={styles.alertaTipo}>
-              {alerta.tipo.charAt(0).toUpperCase() + alerta.tipo.slice(1)}
-            </Text>
-            <Text style={styles.alertaDist}>
-              {formatarDistancia(alerta.distancia_m)}
-            </Text>
-          </View>
-        ))}
+        {alertas.map((alerta) => {
+          const config = ALERTA_CONFIG[alerta.tipo as keyof typeof ALERTA_CONFIG] || ALERTA_CONFIG.outro;
+          return (
+            <View key={alerta.id} style={styles.alertaItem}>
+              <View style={[styles.alertaIconBg, { backgroundColor: config.color + '20' }]}>
+                <MaterialCommunityIcons
+                  name={config.icon}
+                  size={24}
+                  color={config.color}
+                />
+              </View>
+              <Text style={styles.alertaTipo}>
+                {alerta.tipo.charAt(0).toUpperCase() + alerta.tipo.slice(1)}
+              </Text>
+              <Text style={styles.alertaDist}>
+                {formatarDistancia(alerta.distancia_m)}
+              </Text>
+            </View>
+          );
+        })}
       </ScrollView>
     );
   };
@@ -674,9 +671,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     minWidth: 100,
   },
-  alertaEmoji: {
-    fontSize: 24,
-    marginBottom: 4,
+  alertaIconBg: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 6,
   },
   alertaTipo: {
     fontSize: 12,

@@ -103,8 +103,8 @@ export function useMapa(currentLocation?: LocationObject) {
     }
   };
 
-  // Reportar um novo alerta
-  const reportarAlerta = async (tipo: TipoAlerta, descricao?: string) => {
+  // Reportar um novo alerta (verifica duplicados antes de criar)
+  const reportarAlerta = async (tipo: TipoAlerta, descricao?: string): Promise<string> => {
     if (!user || !currentLocation) {
       throw new Error('Usuário não autenticado ou localização indisponível');
     }
@@ -112,6 +112,50 @@ export function useMapa(currentLocation?: LocationObject) {
     try {
       const expiraEm = calcularExpiracao(tipo);
 
+      // Verificar se já existe alerta ativo do mesmo tipo em raio de 100m
+      const { data: duplicados, error: dupError } = await supabase.rpc(
+        'verificar_alerta_duplicado',
+        {
+          p_tipo: tipo,
+          p_lat: currentLocation.coords.latitude,
+          p_lng: currentLocation.coords.longitude,
+          p_raio_metros: 100,
+        }
+      );
+
+      // Se a RPC não existir, ignorar e continuar (criar novo alerta)
+      if (dupError) {
+        console.warn('[reportarAlerta] RPC verificar_alerta_duplicado não existe, criando novo alerta');
+      }
+
+      if (!dupError && duplicados && duplicados.length > 0) {
+        // Alerta duplicado encontrado - incrementar confirmações do existente
+        const alertaExistente = duplicados[0];
+
+        // Tentar incrementar via RPC
+        const { error: incError } = await supabase.rpc('incrementar_confirmacoes', { alerta_id: alertaExistente.id });
+
+        if (incError) {
+          // Fallback: update direto
+          const { data: alertaData } = await supabase
+            .from('alertas_via')
+            .select('confirmacoes')
+            .eq('id', alertaExistente.id)
+            .single();
+
+          if (alertaData) {
+            await supabase
+              .from('alertas_via')
+              .update({ confirmacoes: (alertaData.confirmacoes || 0) + 1 })
+              .eq('id', alertaExistente.id);
+          }
+        }
+
+        await buscarAlertasProximos();
+        return 'Alerta já existe nessa região — sua confirmação foi registrada!';
+      }
+
+      // Sem duplicados - criar novo alerta
       const novoAlerta = {
         tipo,
         geom: `SRID=4326;POINT(${currentLocation.coords.longitude} ${currentLocation.coords.latitude})`,
@@ -131,6 +175,7 @@ export function useMapa(currentLocation?: LocationObject) {
 
       // Após criar o alerta, atualizar a lista de alertas
       await buscarAlertasProximos();
+      return 'Alerta reportado com sucesso!';
     } catch (error: any) {
       console.error('[reportarAlerta]', error);
       throw error;

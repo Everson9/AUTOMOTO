@@ -3,7 +3,7 @@
 import React, { forwardRef, useMemo, useImperativeHandle, useRef } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import BottomSheet, { BottomSheetView } from '@gorhom/bottom-sheet';
-import { MaterialIcons } from '@expo/vector-icons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 // Define the alert types based on the enum from the database
 export type TipoAlerta = 'oleo' | 'areia' | 'buraco' | 'obra' | 'enchente' | 'acidente' | 'outro';
@@ -35,13 +35,13 @@ export const SheetAlerta = forwardRef<SheetAlertaRef, SheetAlertaProps>(
 
     // Alert types with their corresponding icons and colors
     const alertTypes = [
-      { key: 'oleo', label: 'Óleo na pista', icon: 'oil-barrel', color: '#F59E0B' },
-      { key: 'areia', label: 'Areia na curva', icon: 'terrain', color: '#D97706' },
-      { key: 'buraco', label: 'Buraco', icon: 'waves', color: '#EF4444' },
-      { key: 'obra', label: 'Obra', icon: 'construction', color: '#8B5CF6' },
-      { key: 'enchente', label: 'Enchente', icon: 'water', color: '#3B82F6' },
-      { key: 'acidente', label: 'Acidente', icon: 'car-crash', color: '#EC4899' },
-      { key: 'outro', label: 'Outro', icon: 'help-outline', color: '#6B7280' },
+      { key: 'oleo', label: 'Óleo na pista', icon: 'oil', color: '#6B7280' },
+      { key: 'areia', label: 'Areia na curva', icon: 'weather-dust', color: '#D97706' },
+      { key: 'buraco', label: 'Buraco', icon: 'alert-circle', color: '#DC2626' },
+      { key: 'obra', label: 'Obra', icon: 'traffic-cone', color: '#F97316' },
+      { key: 'enchente', label: 'Enchente', icon: 'waves', color: '#2563EB' },
+      { key: 'acidente', label: 'Acidente', icon: 'car-emergency', color: '#DC2626' },
+      { key: 'outro', label: 'Outro', icon: 'alert', color: '#9CA3AF' },
     ];
 
     const handleSelectTipo = (tipo: TipoAlerta) => {
@@ -71,7 +71,7 @@ export const SheetAlerta = forwardRef<SheetAlertaRef, SheetAlertaProps>(
                 accessibilityLabel={item.label}
               >
                 <View style={[styles.iconContainer, { backgroundColor: `${item.color}20` }]}>
-                  <MaterialIcons name={item.icon as any} size={24} color={item.color} />
+                  <MaterialCommunityIcons name={item.icon} size={28} color={item.color} />
                 </View>
                 <Text style={styles.optionLabel}>{item.label}</Text>
               </TouchableOpacity>

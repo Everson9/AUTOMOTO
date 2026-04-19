@@ -1,18 +1,21 @@
-import { Map, Camera, GeoJSONSource, Layer, Marker, TransformRequestManager } from '@maplibre/maplibre-react-native';
+import { Map, Camera, GeoJSONSource, Layer, TransformRequestManager } from '@maplibre/maplibre-react-native';
 import { View, StyleSheet, Text, ActivityIndicator, Alert, TouchableOpacity, Animated } from 'react-native';
 import { useEffect, useState, useRef, useCallback } from 'react';
 import * as Location from 'expo-location';
 import { router } from 'expo-router';
-import { useMapa, TipoAlerta } from '../../src/screens/Mapa/useMapa';
+import { useMapa, TipoAlerta, AlertaVia } from '../../src/screens/Mapa/useMapa';
 import { useHeatmap } from '../../src/hooks/useHeatmap';
 import { useClima } from '../../src/hooks/useClima';
+import { useDetalheAlerta } from '../../src/hooks/useDetalheAlerta';
 import { BotaoAlerta } from '../../src/components/BotaoAlerta';
 import { BotaoAssalto } from '../../src/components/BotaoAssalto';
 import { SheetAlerta, SheetAlertaRef } from '../../src/components/SheetAlerta';
 import { SheetAssalto, SheetAssaltoRef } from '../../src/components/SheetAssalto';
+import { SheetDetalheAlerta, SheetDetalheAlertaRef, AlertaDetalhe } from '../../src/components/SheetDetalheAlerta';
 import { BannerClima } from '../../src/components/BannerClima';
 import { ClimaIconAnimado } from '../../src/components/ClimaIconAnimado';
 import { MotoMarker } from '../../src/components/MotoMarker';
+import { AlertaMarker } from '../../src/components/AlertaMarker';
 import { useAuthContext } from '../../src/hooks/AuthProvider';
 
 const STYLE_URL = 'https://tiles.openfreemap.org/styles/liberty';
@@ -29,6 +32,14 @@ export default function HomeScreen() {
   const cameraRef = useRef<any>(null);
   const sheetRef = useRef<SheetAlertaRef>(null);
   const sheetAssaltoRef = useRef<SheetAssaltoRef>(null);
+  const sheetDetalheRef = useRef<SheetDetalheAlertaRef>(null);
+
+  // Estado para o sheet de detalhes do alerta
+  const [alertaSelecionado, setAlertaSelecionado] = useState<AlertaVia | null>(null);
+  const [jaVotouEstado, setJaVotouEstado] = useState(false);
+
+  // Hook para confirmar/negar alertas (persiste votos no AsyncStorage)
+  const { confirmar: confirmarAlerta, negar: negarAlerta, jaVotou } = useDetalheAlerta();
 
   const { alertas, alertasGeoJSON, erro: alertasErro, reportarAlerta } = useMapa(location);
   const { heatmapData, erro: heatmapErro, refetch: refetchHeatmap } = useHeatmap(location);
@@ -114,10 +125,10 @@ export default function HomeScreen() {
 
   const handleConfirmarAssalto = useCallback(async () => {
     try {
-      await reportarAlerta('assalto');
+      const mensagem = await reportarAlerta('assalto');
       await refetchHeatmap();
       setSheetAberto(false);
-      Alert.alert('Sucesso', 'Assalto reportado com sucesso!');
+      Alert.alert('Sucesso', mensagem);
     } catch (error: any) {
       Alert.alert('Erro', error.message || 'Erro ao reportar assalto');
     }
@@ -125,9 +136,9 @@ export default function HomeScreen() {
 
   const handleSelectTipoAlerta = useCallback(async (tipo: TipoAlerta) => {
     try {
-      await reportarAlerta(tipo);
+      const mensagem = await reportarAlerta(tipo);
       setSheetAberto(false);
-      Alert.alert('Sucesso', 'Alerta reportado com sucesso!');
+      Alert.alert('Sucesso', mensagem);
       sheetRef.current?.close();
     } catch (error: any) {
       Alert.alert('Erro', error.message || 'Erro ao reportar alerta');
@@ -142,6 +153,44 @@ export default function HomeScreen() {
   const handleCloseSheet = useCallback(() => {
     setSheetAberto(false);
     sheetRef.current?.close();
+  }, []);
+
+  // Handler para toque em alerta no mapa
+  const handleAlertaPress = useCallback(async (alerta: AlertaVia) => {
+    setAlertaSelecionado(alerta);
+    const votado = await jaVotou(alerta.id);
+    setJaVotouEstado(votado);
+    setSheetAberto(true);
+    // Pequeno delay para garantir que o estado atualizou antes de expandir
+    setTimeout(() => sheetDetalheRef.current?.expand(), 100);
+  }, [jaVotou]);
+
+  // Handler para confirmar alerta
+  const handleConfirmarAlerta = useCallback(async () => {
+    if (!alertaSelecionado) return;
+    try {
+      await confirmarAlerta(alertaSelecionado.id);
+      setAlertaSelecionado(null);
+    } catch (error) {
+      console.error('[handleConfirmarAlerta]', error);
+    }
+  }, [alertaSelecionado, confirmarAlerta]);
+
+  // Handler para negar alerta
+  const handleNegarAlerta = useCallback(async () => {
+    if (!alertaSelecionado) return;
+    try {
+      await negarAlerta(alertaSelecionado.id);
+      setAlertaSelecionado(null);
+    } catch (error) {
+      console.error('[handleNegarAlerta]', error);
+    }
+  }, [alertaSelecionado, negarAlerta]);
+
+  // Handler para fechar sheet de detalhes
+  const handleCloseSheetDetalhe = useCallback(() => {
+    setSheetAberto(false);
+    setAlertaSelecionado(null);
   }, []);
 
   // Handlers do aviso de clima
@@ -187,41 +236,24 @@ export default function HomeScreen() {
             center: location
               ? [location.coords.longitude, location.coords.latitude]
               : [-43.172896, -22.906847],
-            zoom: 15,
-            
+            zoom: 17,
           }}
+          minZoom={10}
+          maxZoom={22}
           trackUserLocation="course"
         />
 
 
         {/* Alertas na via */}
-        {alertas.map(alerta => {
-          // Mapear tipo para emoji
-          const emojiMap: Record<string, string> = {
-            oleo: '🛢️',
-            areia: '🏖️',
-            buraco: '🕳️',
-            obra: '🚧',
-            enchente: '🌊',
-            acidente: '💥',
-            assalto: '🚨',
-            outro: '❓',
-          };
-          const emoji = emojiMap[alerta.tipo] || '📍';
-
-          return (
-            <Marker
-              key={alerta.id}
-              id={alerta.id}
-              lngLat={[alerta.lng, alerta.lat]}
-              anchor="center"
-            >
-              <View style={styles.markerContainer}>
-                <Text style={styles.markerText}>{emoji}</Text>
-              </View>
-            </Marker>
-          );
-        })}
+        {alertas.map(alerta => (
+          <AlertaMarker
+            key={alerta.id}
+            id={alerta.id}
+            coordinate={[alerta.lng, alerta.lat]}
+            tipo={alerta.tipo}
+            onPress={() => handleAlertaPress(alerta)}
+          />
+        ))}
 
         {/* Heatmap de assaltos */}
         {heatmapData.features.length > 0 && (
@@ -317,6 +349,21 @@ export default function HomeScreen() {
         onClose={handleCloseSheetAssalto}
       />
 
+      <SheetDetalheAlerta
+        ref={sheetDetalheRef}
+        alerta={alertaSelecionado ? {
+          id: alertaSelecionado.id,
+          tipo: alertaSelecionado.tipo,
+          confirmacoes: alertaSelecionado.confirmacoes,
+          negacoes: (alertaSelecionado as AlertaVia & { negacoes?: number }).negacoes ?? 0,
+          criado_em: alertaSelecionado.expira_em,
+        } : null}
+        jaVotou={jaVotouEstado}
+        onConfirmar={handleConfirmarAlerta}
+        onNegar={handleNegarAlerta}
+        onClose={handleCloseSheetDetalhe}
+      />
+
       {(alertasErro || heatmapErro || errorMsg) && (
         <View style={styles.errorMessage}>
           <Text>{alertasErro || heatmapErro || errorMsg}</Text>
@@ -348,16 +395,6 @@ const styles = StyleSheet.create({
     shadowRadius: 3.84,
   },
   pinText: { fontSize: 20 },
-  markerContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  markerText: {
-    fontSize: 32,
-    textShadowColor: 'rgba(0, 0, 0, 0.75)',
-    textShadowOffset: { width: 1, height: 1 },
-    textShadowRadius: 2,
-  },
   errorMessage: {
     position: 'absolute',
     top: 50,
