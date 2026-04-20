@@ -31,9 +31,9 @@
 | 4 | Cadastro de moto movido para dentro da Garagem (remover do onboarding) | Garagem | `concluído` |
 | 5 | Ícone da moto do usuário no mapa (substituir ponto azul) | Radar  | `concluído` |
 | 6 | Ícones SVG customizados por tipo de alerta (substituir emojis) | Radar | `concluído` |
-| 7 | Notificações push básicas (alertas de proximidade) | Radar       | `pendente` |
-| 8 | Onboarding tutorial (primeira vez no app)         | UX          | `pendente` |
-| 9 | Navegação com rota no mapa (estilo Waze, OpenRouteService) | Radar | `pendente` |
+| 7 | Notificações push básicas (alertas de proximidade) | Radar       | `concluído` |
+| 8 | Onboarding tutorial (primeira vez no app)         | UX          | `concluído` |
+| 9 | Integração HERE Maps (incidentes de trânsito + navegação com rota) | Radar | `em progresso` |
 | 10 | Botão "Iniciar Viagem" funcional (gravar rota, velocidade, percurso) | Radar | `pendente` |
 | 11 | Botão "Abastecimento" funcional (registrar combustível) | Garagem | `pendente` |
 | 12 | Botão "Localizar Moto" (última localização estacionada) | Radar | `pendente` |
@@ -57,6 +57,7 @@
 | 5 | Rede SOS + oficinas validadas    | Apoio    | `pendente` |
 | 6 | Gamificação: pontos + ranking    | Comunidade| `pendente` |
 | 7 | Cache offline (MMKV)             | Infra    | `pendente` |
+| 8 | Navegação com rota no mapa (estilo Waze, OpenRouteService) | Radar | `pendente` |
 
 ---
 

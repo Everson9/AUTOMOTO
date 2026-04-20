@@ -265,3 +265,160 @@ CREATE FUNCTION incrementar_negacoes(alerta_id UUID)
 - [x] Usuário não pode votar duas vezes no mesmo alerta
 - [x] Alerta duplicado incrementa confirmação em vez de criar novo
 - [x] Alerta com muitas negações é desativado automaticamente
+
+---
+
+## 2026-04-19 — Notificações Push de Proximidade (Foreground)
+
+### Resumo
+Implementação de notificações locais que alertam o usuário quando se aproxima de um alerta ativo na via (raio de 200m), funcionando com o app aberto.
+
+### Novos arquivos criados
+- `src/services/notificationService.ts` — Serviço de permissão e disparo de notificações
+- `src/hooks/useNotificacoesAlerta.ts` — Hook que monitora proximidade e dispara notificações
+
+### Dependências instaladas
+- `expo-notifications` — API de notificações locais do Expo
+
+### Arquivos modificados
+- `app/(tabs)/radar.tsx` — Integração do hook `useNotificacoesAlerta`
+- `automoto-docs/docs/modules/MODULE_RADAR.md` — Seção "Notificações background (Fase 2)"
+
+### Funcionalidades implementadas
+1. **Permissão de notificação**: solicitada automaticamente ao entrar no Radar
+2. **Cálculo de distância**: fórmula de Haversine para distância entre usuário e alerta
+3. **Notificação local**: disparada quando distância < 200m
+4. **Título com emoji + tipo**: ex: "⚠️ Buraco", "🚨 Alerta de assalto"
+5. **Body com distância**: ex: "~150m à frente — tome cuidado!"
+6. **Controle de duplicados**: `Set<string>` em memória impede notificar o mesmo alerta duas vezes na sessão
+7. **Canal Android**: configurado com importância alta e vibração
+
+### Mapeamento de emojis por tipo
+| Tipo | Emoji | Label |
+|------|-------|-------|
+| oleo | 🛢️ | Óleo na pista |
+| areia | 🏖️ | Areia na pista |
+| buraco | ⚠️ | Buraco |
+| obra | 🚧 | Obra na pista |
+| enchente | 🌊 | Enchente |
+| acidente | 💥 | Acidente |
+| assalto | 🚨 | Alerta de assalto |
+| outro | ❗ | Alerta na via |
+
+### Bug fix
+- Corrigido `solicitarPermissao()` para Android 13+: sempre chamar `requestPermissionsAsync()` quando status não for `granted`, pois o status pode ser `undefined` ou `denied` na primeira vez
+
+### Documentação Fase 2
+Adicionado no MODULE_RADAR.md: stack necessária para background notifications (expo-task-manager + expo-location background), implementação referência com `defineTask`, e permissões Android adicionais.
+
+### Critérios de pronto atendidos
+- [x] Permissão solicitada ao entrar no Radar
+- [x] Notificação dispara ao se aproximar de alerta (200m)
+- [x] Título com emoji + tipo, body com distância
+- [x] Mesmo alerta não notifica duas vezes (Set em memória)
+- [x] Background documentado no MODULE_RADAR.md para Fase 2
+
+---
+
+## 2026-04-19 — Onboarding Tutorial
+
+### Resumo
+Implementação do tutorial de primeira abertura com 5 slides deslizantes, exibido apenas na primeira vez após o login.
+
+### Novos arquivos criados
+- `src/screens/Onboarding/OnboardingScreen.tsx` — Tela com 5 slides deslizantes
+- `app/onboarding.tsx` — Wrapper da rota
+
+### Arquivos modificados
+- `app/_layout.tsx` — Verificação de onboarding após autenticação
+
+### Estrutura dos slides
+| Slide | Tipo | Conteúdo |
+|-------|------|----------|
+| 1 | Welcome | Logo + "Bem-vindo ao Automoto" + subtítulo |
+| 2 | Feature | Ícone `map-marker-alert` + "Radar da Via" |
+| 3 | Feature | Ícone `alert-plus` + "Reporte e ajude" |
+| 4 | Feature | Ícone `garage` + "Sua Garagem" |
+| 5 | Feature | Ícone `bell-alert` + "Alertas de proximidade" |
+
+### Funcionalidades implementadas
+1. **5 slides com swipe horizontal**: FlatList com `pagingEnabled`
+2. **Dots de paginação**: indicadores sincronizados com slide atual
+3. **Botão "Pular"**: canto superior direito, exceto no último slide
+4. **Botão "Próximo"**: slides 1-4, navega para próximo slide
+5. **Botão "Começar!"**: slide 5, finaliza onboarding
+6. **Persistência**: `AsyncStorage.setItem('onboarding_concluido', 'true')`
+7. **Fluxo de navegação**: login → verificar onboarding → /onboarding ou /(tabs)
+
+### Lógica do _layout.tsx
+```tsx
+// Fluxo atualizado:
+// isLoading → spinner
+// !isAutenticado → /login
+// isAutenticado && !onboardingChecked → verificar AsyncStorage
+// isAutenticado && !onboardingConcluido → /onboarding
+// isAutenticado && onboardingConcluido → /(tabs)
+```
+
+### Design visual
+- Fundo: #0D0D0D
+- Ícones: MaterialCommunityIcons size=80, cor âmbar #F97316
+- Título: branco 28px bold
+- Descrição: cinza #9CA3AF 16px centralizado
+- Dots ativos: âmbar #F97316
+- Dots inativos: cinza #4B5563
+- Botões: dark theme consistente com PerfilScreen
+
+### Critérios de pronto atendidos
+- [x] Tutorial aparece na primeira abertura após login
+- [x] 5 slides com swipe entre eles
+- [x] Dots de paginação funcionando
+- [x] Botão "Pular" e "Começar!" funcionando
+- [x] Não aparece na segunda abertura (AsyncStorage)
+- [x] Design dark consistente com o app
+
+---
+
+## 2026-04-20 — Integração HERE Maps (Incidentes + Navegação)
+
+### Resumo
+Integração completa da HERE Maps API para incidentes de trânsito em tempo real e navegação com rota (busca de endereço + cálculo de rota + polyline).
+
+### Novos arquivos criados
+- `src/services/hereService.ts` — Serviço de integração HERE API (buscarIncidentes, buscarEndereco, calcularRota, decodeFlexPolyline, formatarDistancia, formatarTempo, calcularBBox)
+- `src/hooks/useHereTraffic.ts` — Hook para buscar incidentes HERE com polling de 5 min e re-fetch ao mover 500m
+- `src/hooks/useNavegacao.ts` — Hook de estado da navegação (busca, rota, destino)
+- `src/components/IncidenteMarker/index.tsx` — Marcador de incidentes HERE com badge azul
+- `src/components/BuscaDestino/index.tsx` — Input de busca de endereço com autocompletar
+- `src/components/CardNavegacao/index.tsx` — Card com info da rota (destino, distância, ETA)
+
+### Arquivos modificados
+- `app/(tabs)/radar.tsx` — Integração de incidentes HERE, navegação, polyline da rota, busca de endereço
+
+### Funcionalidades implementadas
+1. **HERE Traffic API v7**: busca de incidentes (acidente, via interditada, obra) na área visível
+2. **HERE Geocoding API**: busca de endereço com autocompletar em PT-BR
+3. **HERE Routing API v8**: cálculo de rota com modo `car` e instruções
+4. **Flexpolyline**: decodificação manual da polyline HERE para coordenadas
+5. **IncidenteMarker**: marcador com ícone + cor por tipo + badge "HERE" azul
+6. **BuscaDestino**: input com lista de sugestões (até 5 resultados)
+7. **CardNavegacao**: card no topo com destino, distância (km/m), ETA (min/h)
+8. **Polyline da rota**: GeoJSON Source/Layer para linha azul no mapa
+
+### Fixes aplicados
+- **API URL 404**: HERE Traffic API migrou de `/traffic/6.3/incidents.json` para `/v7/incidents` com formato bbox diferente (`in=bbox:lng,lat,lng,lat`)
+- **transportMode inválido**: HERE Routing v8 NÃO aceita `motorcycle` ou `scooter` — alterado para `car`
+- **return parameter**: `instructions` requer `actions` no return — alterado para `polyline,summary,actions,instructions`
+
+### Configuração
+- `EXPO_PUBLIC_HERE_API_KEY` em `.env.local`
+- Free tier: 2.500 requests/dia por API (suporta ~400-500 MAU)
+
+### Pendência conhecida
+- **Polyline não renderiza**: o cálculo da rota funciona (distância e ETA aparecem), mas a linha azul no mapa não está sendo desenhada. GeoJSONSource/Layer configurado, mas precisa debug.
+
+### Critérios de pronto
+- [x] HERE API integrada no serviço de mapa (hereService.ts)
+- [x] Incidentes HERE renderizados no mapa (IncidenteMarker)
+- [ ] Navegação com rota funcional (polyline pendente)
+- [ ] Testado em Android físico

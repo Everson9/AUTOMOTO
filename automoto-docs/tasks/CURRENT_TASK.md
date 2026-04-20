@@ -7,23 +7,29 @@
 
 ## Tarefa atual
 
-**O que:** Criação da logo Automoto
+**O que:** Onboarding tutorial — telas deslizantes na primeira abertura
 
-**Módulo:** Identidade
+**Módulo:** UX
 
-**Fase do roadmap:** Fase 1.5 — Polimento e UX, item 1
+**Fase do roadmap:** Fase 1.5 — Polimento e UX, item 8
 
 ---
 
 ## Critério de pronto
 
-- [ ] Logo criada em formato SVG
-- [ ] Logo funciona em dark e light backgrounds
-- [ ] Logo integrada nas telas de auth (Login, Cadastro)
-- [ ] Logo integrada na Home (header)
-- [ ] Logo integrada na Garagem (header)
-- [ ] Dossiê PDF atualizado com logo real
-- [ ] Versão PNG exportada para stores e materiais
+- [ ] Tutorial aparece na primeira abertura após login
+- [ ] 5 slides com swipe entre eles
+- [ ] Dots de paginação funcionando
+- [ ] Botão "Pular" e "Começar!" funcionando
+- [ ] Não aparece na segunda abertura
+- [ ] Design dark consistente com o app
+
+---
+
+## Contexto necessário
+
+- `docs/architecture/EXPO_ROUTER_GUIDE.md`
+- `docs/architecture/CONVENTIONS.md`
 
 ---
 
@@ -40,22 +46,17 @@
 
 ---
 
-## Contexto necessário
+## Status da Fase 1.5 (em progresso)
 
-- [ ] `docs/modules/MODULE_IDENTIDADE.md`
-
----
-
-## Diretrizes de design
-
-Conforme MODULE_IDENTIDADE.md:
-
-**Conceito:** motociclismo urbano, tecnologia e segurança
-**Estilo:** moderno, minimalista, funciona bem em dark e light
-**Paleta:**
-- Background: #0D0D0D (primário), #1A1A1A (secundário)
-- Accent: #F97316 (laranja/âmbar)
-- Texto: #FFFFFF (primário), #9CA3AF (secundário)
+- [x] Logo Automoto criada e integrada
+- [x] Home contextual (3 tabs: Home, Radar, Garagem)
+- [x] Editar moto + upload de foto
+- [x] Cadastro de moto na Garagem + múltiplas motos
+- [x] Ícone da moto no mapa (PNG top-view)
+- [x] Ícones MaterialCommunityIcons por tipo de alerta
+- [x] Notificações push básicas (foreground)
+- [ ] Onboarding tutorial ← tarefa atual
+- [ ] Navegação com rota no mapa
 
 ---
 
@@ -65,13 +66,20 @@ Conforme MODULE_IDENTIDADE.md:
 |----------|--------------------------------------------------|--------------------------------------------|
 | 11/04/26 | Setup monorepo + Expo + MapLibre                 | apps/mobile/                               |
 | 11/04/26 | Auth por email + cadastro de moto + mapa básico  | app/_layout.tsx, src/screens/Login, Cadastro, CadastrarMoto |
-| 11/04/26 | Radar da Via: botão, sheet, alertas no Supabase  | app/(tabs)/index.tsx, useMapa.ts, BotaoAlerta, SheetAlerta |
-| 12/04/26 | Correções: GestureHandler, SheetAlerta, app.json | app/_layout.tsx, SheetAlerta/index.tsx, app.json |
-| 12/04/26 | MapLibre v11: migração completa da API            | app/(tabs)/index.tsx |
+| 11/04/26 | Radar da Via: botão, sheet, alertas no Supabase  | useMapa.ts, BotaoAlerta, SheetAlerta |
+| 12/04/26 | Correções: GestureHandler, SheetAlerta, app.json | app/_layout.tsx, SheetAlerta/index.tsx |
+| 12/04/26 | MapLibre v11: migração completa da API            | app/(tabs)/radar.tsx |
 | 17/04/26 | Heatmap de assaltos + BotaoAssalto + SheetAssalto | useHeatmap.ts, BotaoAssalto, SheetAssalto |
 | 18/04/26 | Aviso de clima Open-Meteo + BannerClima          | climaService.ts, useClima.ts, BannerClima |
 | 18/04/26 | Garagem: tab bar + inventário de mods + edição   | GaragemScreen, AdicionarModScreen, EditarModScreen |
 | 18/04/26 | Dossiê de Procedência PDF + compartilhamento      | templateDossie.ts, useDossie.ts, DossieScreen |
+| 18/04/26 | Home contextual + tab bar 3 tabs                 | HomeScreen, useHome.ts |
+| 18/04/26 | Editar moto + upload de foto                     | EditarMotoScreen, storageService.ts |
+| 18/04/26 | Cadastro de moto na Garagem + múltiplas motos    | CadastrarMotoGaragemScreen, useGaragem.ts |
+| 19/04/26 | Logo Automoto integrada                          | assets/images/logo.png |
+| 19/04/26 | Ícone da moto no mapa                            | MotoMarker |
+| 19/04/26 | AlertaMarker + SheetDetalheAlerta                | AlertaMarker, SheetDetalheAlerta, useDetalheAlerta.ts |
+| 19/04/26 | Notificações push de proximidade                 | notificationService.ts, useNotificacoesAlerta.ts |
 
 ---
 
@@ -79,8 +87,8 @@ Conforme MODULE_IDENTIDADE.md:
 Leia os seguintes arquivos antes de começar:
 
 tasks/CURRENT_TASK.md
-docs/modules/MODULE_IDENTIDADE.md
+docs/architecture/EXPO_ROUTER_GUIDE.md
+docs/architecture/CONVENTIONS.md
+apps/mobile/app/_layout.tsx
 
-Após ler, me mostre o que entendeu da tarefa e proponha
-a ordem de implementação antes de escrever qualquer código.
-Aguarde minha confirmação antes de começar.
+Após ler, mostre o plano de implementação e aguarde confirmação antes de começar.

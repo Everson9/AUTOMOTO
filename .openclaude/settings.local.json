@@ -22,7 +22,9 @@
       "Bash(head -20 apps/mobile/app/\\\\\\(tabs\\\\\\)/radar.tsx)",
       "Bash(sed -n '195,210p' apps/mobile/app/\\\\\\(tabs\\\\\\)/radar.tsx)",
       "Bash(node -e \"const icons = require\\(''@expo/vector-icons/build/MaterialCommunityIcons''\\).default; console.log\\(Object.keys\\(icons.glyphMap\\).filter\\(k => k.includes\\(''construct''\\) || k.includes\\(''road''\\) || k.includes\\(''traffic''\\) || k.includes\\(''cone''\\)\\).slice\\(0,20\\).join\\(''\\\\n''\\)\\)\")",
-      "Bash(node -e \"const icons = require\\(''@expo/vector-icons/build/MaterialCommunityIcons''\\).default; console.log\\(Object.keys\\(icons.glyphMap\\).filter\\(k => k.includes\\(''car''\\) && k.includes\\(''crash''\\) || k.includes\\(''accident''\\) || k.includes\\(''collision''\\)\\).slice\\(0,20\\).join\\(''\\\\n''\\)\\)\")"
+      "Bash(node -e \"const icons = require\\(''@expo/vector-icons/build/MaterialCommunityIcons''\\).default; console.log\\(Object.keys\\(icons.glyphMap\\).filter\\(k => k.includes\\(''car''\\) && k.includes\\(''crash''\\) || k.includes\\(''accident''\\) || k.includes\\(''collision''\\)\\).slice\\(0,20\\).join\\(''\\\\n''\\)\\)\")",
+      "WebFetch(domain:developer.here.com)",
+      "WebSearch"
     ]
   }
 }

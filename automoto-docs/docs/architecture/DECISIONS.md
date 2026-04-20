@@ -200,3 +200,35 @@ priorizando experiência do usuário e qualidade sobre quantidade de features.
 - ✅ Mapa com ícones profissionais e navegação real
 - ✅ Identidade visual consolidada antes de crescer
 - ⚠️ Fase 2 adiada, mas com base sólida para crescimento
+
+---
+
+## ADR-011: Estratégia híbrida de dados — HERE Maps + comunidade
+
+**Status:** Aceito
+**Data:** 2026-04-20
+
+### Contexto
+Apps colaborativos enfrentam o **problema do cold start**: sem usuários ativos, não há dados; sem dados, não há usuários. O Radar precisa de alertas na via desde o primeiro uso, mesmo com zero usuários reportando. Além disso, navegadores como Waze são referência em UX de rota.
+
+### Decisão
+Adotar modelo híbrido de dados com HERE Maps:
+- **HERE Traffic API** como fonte base de incidentes gerais (obras, acidentes, fechamentos)
+- **HERE Geocoding + Routing API** para navegação com rota (busca de endereço + cálculo de rota)
+- **Comunidade Automoto** enriquece com alertas específicos de motociclistas (óleo, areia, buracos, assaltos)
+
+### Decisão técnica
+HERE Maps foi escolhido sobre TomTom por:
+1. **Modo motorcycle** — HERE Routing API suporta `transportMode=motorcycle`, adequado ao público-alvo
+2. **APIs unificadas** — Uma única API key para tráfego, geocoding e routing
+3. **Geocoding em PT-BR** — Retorno de endereços em português Brasil com `lang=pt-BR`
+4. **Melhor custo-benefício** — Free tier de 2.500 requests/dia por API, com melhor documentação
+
+### Consequências
+- ✅ Usuário encontra valor desde a primeira abertura (dados do HERE)
+- ✅ Navegação com rota estilo Waze (busca + polyline + instruções)
+- ✅ Modo moto no cálculo de rota (tempo e distância realistas)
+- ✅ Dados especializados de motociclistas crescem organicamente
+- ✅ Free tier HERE suporta ~400-500 MAU
+- ⚠️ Custo adicional quando escalar (avaliar em Fase 2)
+- ⚠️ Merge de fontes exige diferenciação visual (badge "HERE" nos marcadores)

@@ -209,6 +209,154 @@ Inspirado no modelo do Waze:
 
 ---
 
+## Notificações background (Fase 2)
+
+O MVP (Fase 1) implementa notificações apenas com o app em foreground.
+
+**Fase 2:** notificar mesmo com app em segundo plano.
+
+### Stack necessária
+- `expo-task-manager` — registrar background task
+- `expo-location` — modo background (`enableBackgroundTrackingAsync`)
+- Permissão `ACCESS_BACKGROUND_LOCATION` no Android
+
+### Fluxo
+1. App registra background task `BACKGROUND_LOCATION_TASK`
+2. Sistema operacional dispara a task periodicamente com location update
+3. Task verifica alertas próximos via RPC `alertas_proximos`
+4. Se encontrar alerta novo (não notificado antes), dispara notificação local
+5. Persistir alertas notificados em AsyncStorage (sobrevive entre sessões)
+
+### Implementação referência
+```typescript
+// apps/mobile/src/tasks/backgroundLocationTask.ts
+
+import { defineTask } from 'expo-task-manager';
+import * as Location from 'expo-location';
+import { dispararNotificacaoAlerta } from '../services/notificationService';
+
+const BACKGROUND_LOCATION_TASK = 'background-location-task';
+
+defineTask(BACKGROUND_LOCATION_TASK, async ({ data, error }) => {
+  if (error || !data) return;
+
+  const { coords } = data as Location.LocationObjectCoords;
+
+  // Buscar alertas próximos via Supabase RPC
+  // Verificar AsyncStorage para não duplicar
+  // Disparar notificação se necessário
+});
+
+// Registrar no app
+await Location.enableBackgroundTrackingAsync(BACKGROUND_LOCATION_TASK);
+```
+
+### Permissões adicionais (Android)
+```xml
+<!-- AndroidManifest.xml -->
+<uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
+<uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+```
+
+---
+
+## Estratégia de dados — modelo híbrido
+
+O Radar usa uma estratégia híbrida de dados para resolver o **problema do cold start**:
+
+- **HERE Maps API** — fornece incidentes de trânsito e navegação com rota
+- **Comunidade Automoto** — adiciona dados específicos de motociclistas (óleo, areia, buracos, assaltos)
+
+### Fonte base: HERE Maps API
+
+HERE oferece APIs robustas de trânsito e navegação com free tier generoso.
+
+**APIs utilizadas:**
+
+1. **Traffic Incidents API** — incidentes de trânsito em tempo real
+   - Endpoint: `https://data.traffic.hereapi.com/traffic/6.3/incidents.json`
+   - Parâmetros: `bbox`, `criticality`
+   - Tipos cobertos: `ACCIDENT`, `ROAD_CLOSURE`, `CONSTRUCTION`
+
+2. **Geocoding API** — busca de endereço
+   - Endpoint: `https://geocode.search.hereapi.com/v1/geocode`
+   - Parâmetros: `q`, `at` (localização atual para priorizar)
+   - Retorna até 5 sugestões em português
+
+3. **Routing API** — cálculo de rota
+   - Endpoint: `https://router.hereapi.com/v8/routes`
+   - `transportMode=motorcycle` — modo moto!
+   - Retorna polyline + instruções + resumo
+
+**Implementação:**
+- `src/services/hereService.ts` — funções de API
+- `src/hooks/useHereTraffic.ts` — hook para incidentes
+- `src/hooks/useNavegacao.ts` — hook para navegação com rota
+
+### Fonte especializada: Comunidade Automoto
+
+Incidentes específicos de motociclistas que o HERE não cobre:
+
+- **Óleo na pista** — risco de derrapagem
+- **Areia na pista** — risco de derrapagem
+- **Buracos** — risco de queda
+- **Assaltos/furtos** — segurança (heat map e alertas pontuais)
+
+### Diferenciação visual
+
+- **Incidentes HERE**: marcador com badge "HERE" azul
+- **Alertas comunidade**: marcador com ícone temático (sem badge)
+
+### Merge de dados
+
+```typescript
+// Incidentes do HERE
+interface IncidenteHERE {
+  id: string;
+  tipo: 'ACCIDENT' | 'ROAD_CLOSURE' | 'CONSTRUCTION';
+  lat: number;
+  lng: number;
+  severidade: 'critical' | 'major' | 'minor';
+  origem: 'here';
+}
+
+// Alertas da comunidade (existentes)
+interface AlertaVia {
+  id: string;
+  tipo: 'oleo' | 'areia' | 'buraco' | 'obra' | 'enchente' | 'acidente' | 'assalto' | 'outro';
+  lat: number;
+  lng: number;
+  confirmacoes: number;
+  origem: 'automoto';
+}
+
+// Renderizar ambos no mapa, com marcação visual diferente
+```
+
+### Navegação com rota
+
+**UX do fluxo:**
+1. Botão "🔍 Buscar destino" (canto superior esquerdo)
+2. Input de busca com autocompletar
+3. Seleção de destino → cálculo de rota
+4. Linha azul no mapa (`#2563EB`)
+5. Card com destino, distância, ETA
+6. Botão cancelar para limpar rota
+
+**Componentes:**
+- `BuscaDestino` — input + lista de sugestões
+- `CardNavegacao` — card com info da rota ativa
+- `useNavegacao` — hook de estado da navegação
+
+### Custo
+
+- Free tier HERE: 2.500 requests/dia por API
+- Consumo estimado: ~4-6 requests/dia por usuário ativo
+- Capacidade: ~400-500 usuários ativos/dia no free tier
+- Fase 2: avaliar plano pago quando passar de 1.000 MAU
+
+---
+
 ## Testes de aceitação
 
 - [ ] Mapa carrega com tiles do OpenFreeMap em 3s em 4G

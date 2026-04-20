@@ -2,52 +2,56 @@
 
 ---
 
-## Fase 1.5, Item 7 — Notificações push básicas (alertas de proximidade)
+**Tarefa atual:** HERE Maps — corrigir linha da rota no mapa
+**Módulo:** Radar
+**Fase:** Fase 1.5 — Polimento e UX, item 9
 
-### Objetivo
-Implementar notificações push que alertam o usuário quando ele se aproxima de um alerta registrado por outro motociclista.
+## Critério de pronto
+- [x] HERE API integrada no serviço de mapa (hereService.ts)
+- [x] Incidentes HERE renderizados no mapa (IncidenteMarker)
+- [ ] Navegação com rota funcional (polyline pendente)
+- [ ] Testado em Android físico
 
-### Contexto atual
-- Alertas já são exibidos no mapa via `AlertaMarker`
-- Usuário pode reportar alertas via `SheetAlerta`
-- Localização do usuário obtida via `expo-location`
-- Supabase já configurado com tabela `alertas_via`
+## Contexto necessário
+- `docs/modules/MODULE_RADAR.md` — ver seção "Estratégia de dados — modelo híbrido"
+- `EXPO_PUBLIC_HERE_API_KEY` configurada em `.env.local`
 
-### Requisitos funcionais
-1. Notificar quando usuário se aproxima de um alerta ativo (raio configurável, ex: 200m)
-2. Notificação inclui tipo do alerta e distância
-3. Usuário pode desativar notificações de alertas nas configurações
-4. Notificação abre o app no mapa centrado no alerta
+## Pendência
+A função `calcularRota` retorna distância e ETA corretos, mas a linha azul da rota não está renderizando no mapa. O GeoJSONSource e LineLayer estão configurados em `radar.tsx`, mas a polyline não aparece visualmente.
 
-### Stack sugerida
-- **Expo Notifications** — API de notificações locais
-- **TaskManager** — background task para monitorar localização
-- ** expo-location** — já instalado
+**Possíveis causas:**
+- GeoJSONSource não está recebendo as coordenadas corretamente
+- Coordenadas no formato errado (espera `[lng, lat]`)
+- LineLayer configurado incorretamente
+- Ordem de renderização (z-index)
 
-### Arquivos a criar/modificar
-- `src/hooks/useNotificacoesAlerta.ts` — Hook para gerenciar notificações
-- `src/services/notificationService.ts` — Serviço de notificações locais
-- `app/(tabs)/radar.tsx` — Integração do hook de notificações
-- `src/screens/Configuracoes/ConfiguracoesScreen.tsx` — Toggle de notificações
+## Arquivos criados
+- `src/services/hereService.ts` — Funções de API (incidentes, geocoding, routing)
+- `src/hooks/useHereTraffic.ts` — Hook para buscar incidentes
+- `src/hooks/useNavegacao.ts` — Hook para navegação com rota
+- `src/components/IncidenteMarker/index.tsx` — Marcador de incidentes HERE
+- `src/components/BuscaDestino/index.tsx` — Input de busca de endereço
+- `src/components/CardNavegacao/index.tsx` — Card com info da rota
 
-### Fluxo de background
-1. App registra background task para monitorar localização
-2. Quando localização muda, verificar se há alertas próximos
-3. Se houver alerta novo (não notificado antes), disparar notificação local
-4. Usuário toca na notificação → app abre no alerta
+## Arquivos modificados
+- `app/(tabs)/radar.tsx` — Integração de incidentes e navegação
 
-### Desafios técnicos
-- Background location task no Android/iOS
-- Permissão de notificação
-- Persistir alertas já notificados (AsyncStorage)
-- Balancear frequência de verificação (bateria vs. utilidade)
+---
 
-### Critérios de pronto
-- [ ] Usuário recebe notificação ao se aproximar de alerta
-- [ ] Notificação mostra tipo e distância
-- [ ] Toque na notificação abre o app
-- [ ] Toggle para desativar notificações
-- [ ] Performance adequada (não drena bateria)
+## Histórico de tarefas concluídas
 
-### Status
-`pendente` — aguardando início
+| Data | Tarefa | Arquivos principais |
+|------|--------|---------------------|
+| 26/04/20 | HERE Maps integration (incidentes + navegação) | hereService.ts, useHereTraffic.ts, useNavegacao.ts |
+| 26/04/18 | Home contextual + tab bar 3 tabs | HomeScreen, useHome.ts |
+| 26/04/18 | Editar moto + upload de foto | EditarMotoScreen, storageService.ts |
+| 26/04/18 | Cadastro de moto na Garagem + múltiplas motos | CadastrarMotoGaragemScreen, useGaragem.ts |
+| 26/04/19 | Logo Automoto integrada (Login, Cadastro, Home) | assets/images/logo.png |
+| 26/04/19 | Ícone da moto no mapa (PNG top-view) | MotoMarker |
+| 26/04/19 | AlertaMarker com MaterialCommunityIcons | AlertaMarker, SheetDetalheAlerta |
+| 26/04/19 | Confirmar/negar alertas + proteção duplicata | useDetalheAlerta.ts, verificar_alerta_duplicado RPC |
+| 26/04/19 | Notificações push de proximidade (foreground) | notificationService.ts, useNotificacoesAlerta.ts |
+| 26/04/19 | Onboarding tutorial (5 slides deslizantes) | OnboardingScreen, app/_layout.tsx |
+
+## Status
+`em progresso` — polyline da rota não renderiza

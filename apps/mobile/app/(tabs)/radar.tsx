@@ -1,12 +1,16 @@
 import { Map, Camera, GeoJSONSource, Layer, TransformRequestManager } from '@maplibre/maplibre-react-native';
 import { View, StyleSheet, Text, ActivityIndicator, Alert, TouchableOpacity, Animated } from 'react-native';
-import { useEffect, useState, useRef, useCallback } from 'react';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import * as Location from 'expo-location';
 import { router } from 'expo-router';
 import { useMapa, TipoAlerta, AlertaVia } from '../../src/screens/Mapa/useMapa';
 import { useHeatmap } from '../../src/hooks/useHeatmap';
 import { useClima } from '../../src/hooks/useClima';
+import { useNotificacoesAlerta } from '../../src/hooks/useNotificacoesAlerta';
 import { useDetalheAlerta } from '../../src/hooks/useDetalheAlerta';
+import { useHereTraffic } from '../../src/hooks/useHereTraffic';
+import { useNavegacao } from '../../src/hooks/useNavegacao';
 import { BotaoAlerta } from '../../src/components/BotaoAlerta';
 import { BotaoAssalto } from '../../src/components/BotaoAssalto';
 import { SheetAlerta, SheetAlertaRef } from '../../src/components/SheetAlerta';
@@ -16,6 +20,10 @@ import { BannerClima } from '../../src/components/BannerClima';
 import { ClimaIconAnimado } from '../../src/components/ClimaIconAnimado';
 import { MotoMarker } from '../../src/components/MotoMarker';
 import { AlertaMarker } from '../../src/components/AlertaMarker';
+import { IncidenteMarker } from '../../src/components/IncidenteMarker';
+import { BuscaDestino } from '../../src/components/BuscaDestino';
+import { CardNavegacao } from '../../src/components/CardNavegacao';
+import { SugestaoEndereco } from '../../src/services/hereService';
 import { useAuthContext } from '../../src/hooks/AuthProvider';
 
 const STYLE_URL = 'https://tiles.openfreemap.org/styles/liberty';
@@ -57,7 +65,14 @@ export default function HomeScreen() {
     reabrirAviso,
     foiFechado: avisoClimaFechado,
   } = useClima(location);
+  const { permissaoGranted: permissaoNotificacao } = useNotificacoesAlerta(alertas, location);
   const { user } = useAuthContext();
+
+  // Incidentes HERE Traffic API
+  const { incidentes, isLoading: incidentesLoading } = useHereTraffic(location, 5);
+
+  // Navegação com rota
+  const navegacao = useNavegacao(location);
 
   // Calcular iniciais do usuário para o avatar
   const iniciais = user?.user_metadata?.nome
@@ -215,6 +230,45 @@ export default function HomeScreen() {
     reabrirAviso();
   }, [reabrirAviso]);
 
+  // Handlers de navegação
+  const handleAbrirBusca = useCallback(() => {
+    navegacao.setBuscaAtiva(true);
+  }, [navegacao]);
+
+  const handleFecharBusca = useCallback(() => {
+    navegacao.setBuscaAtiva(false);
+    navegacao.setQuery('');
+  }, [navegacao]);
+
+  const handleBuscarDestino = useCallback((query: string) => {
+    navegacao.buscarSugestoes(query);
+  }, [navegacao]);
+
+  const handleSelecionarDestino = useCallback(async (destino: SugestaoEndereco) => {
+    await navegacao.selecionarDestino(destino);
+  }, [navegacao]);
+
+  const handleCancelarNavegacao = useCallback(() => {
+    navegacao.cancelarNavegacao();
+  }, [navegacao]);
+
+  // GeoJSON da rota de navegação
+  const rotaGeoJSON = useMemo(() => {
+    if (!navegacao.rota || navegacao.rota.polyline.length === 0) return null;
+
+    return {
+      type: 'FeatureCollection' as const,
+      features: [{
+        type: 'Feature' as const,
+        geometry: {
+          type: 'LineString' as const,
+          coordinates: navegacao.rota.polyline.map(p => [p.lng, p.lat]),
+        },
+        properties: {},
+      }],
+    };
+  }, [navegacao.rota]);
+
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -261,6 +315,34 @@ export default function HomeScreen() {
             onPress={() => handleAlertaPress(alerta)}
           />
         ))}
+
+        {/* Incidentes HERE Traffic */}
+        {incidentes.map(incidente => (
+          <IncidenteMarker
+            key={incidente.id}
+            id={incidente.id}
+            coordinate={[incidente.lng, incidente.lat]}
+            tipo={incidente.tipo}
+          />
+        ))}
+
+        {/* Rota de navegação */}
+        {rotaGeoJSON && navegacao.rota && (
+          <GeoJSONSource
+            id="rota-source"
+            data={rotaGeoJSON}
+          >
+            <Layer
+              id="rota-layer"
+              type="line"
+              paint={{
+                lineColor: '#2563EB',
+                lineWidth: 4,
+                lineOpacity: 0.8,
+              }}
+            />
+          </GeoJSONSource>
+        )}
 
         {/* Heatmap de assaltos */}
         {heatmapData.features.length > 0 && (
@@ -310,6 +392,44 @@ export default function HomeScreen() {
 
       <BotaoAlerta onPress={handleReportarAlerta} visivel={!sheetAberto} />
       <BotaoAssalto onPress={handleReportarAssalto} visivel={!sheetAberto} />
+
+      {/* Botão de buscar destino (apenas quando não há navegação ativa) */}
+      {!navegacao.navegacaoAtiva && !navegacao.buscaAtiva && (
+        <TouchableOpacity
+          style={styles.buscaDestinoButton}
+          onPress={handleAbrirBusca}
+          activeOpacity={0.7}
+          accessibilityLabel="Buscar destino"
+          accessibilityRole="button"
+        >
+          <MaterialCommunityIcons
+            name="magnify"
+            size={24}
+            color="#F97316"
+          />
+        </TouchableOpacity>
+      )}
+
+      {/* Componente de busca de destino */}
+      <BuscaDestino
+        visivel={navegacao.buscaAtiva}
+        query={navegacao.query}
+        sugestoes={navegacao.sugestoes}
+        carregando={navegacao.buscandoSugestoes}
+        onQueryChange={navegacao.setQuery}
+        onBuscar={handleBuscarDestino}
+        onSelecionar={handleSelecionarDestino}
+        onFechar={handleFecharBusca}
+      />
+
+      {/* Card de navegação durante rota ativa */}
+      {navegacao.navegacaoAtiva && navegacao.destinoSelecionado && navegacao.rota && (
+        <CardNavegacao
+          destino={navegacao.destinoSelecionado}
+          rota={navegacao.rota}
+          onCancelar={handleCancelarNavegacao}
+        />
+      )}
 
       {/* Header direito: ícone de clima + perfil */}
       <View style={styles.headerRight}>
@@ -452,5 +572,23 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '700',
     color: '#1A1A1A',
+  },
+  buscaDestinoButton: {
+    position: 'absolute',
+    top: 60,
+    left: 16,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#1A1A1A',
+    borderWidth: 1,
+    borderColor: '#374151',
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
   },
 });
