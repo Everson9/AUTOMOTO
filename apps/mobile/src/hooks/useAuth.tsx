@@ -19,7 +19,7 @@ export function useAuth() {
           setUser(null);
         } else {
           // Verificar se a sessão é válida comparando com o tempo atual
-          const isValid = session && session.expires_at && session.expires_at > Date.now() / 1000;
+          const isValid = session && session.expires_at && session.expires_at * 1000 > Date.now();
 
           if (isValid) {
             setSession(session);
@@ -44,8 +44,11 @@ export function useAuth() {
     // Ouvir mudanças de autenticação (login, logout, refresh)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
+        // Ignorar evento inicial - já foi tratado pelo fetchSession
+        if (event === 'INITIAL_SESSION') return;
+
         // Verificar se a nova sessão é válida
-        const isValid = session && session.expires_at && session.expires_at > Date.now() / 1000;
+        const isValid = session && session.expires_at && session.expires_at * 1000 > Date.now();
 
         if (isValid) {
           setSession(session);
@@ -62,7 +65,7 @@ export function useAuth() {
   }, [])
 
   // isAutenticado é verdadeiro somente se houver uma sessão válida e não expirada
-  const isAutenticado = !!session && session.expires_at && session.expires_at > Date.now() / 1000;
+  const isAutenticado = !!session && !!session.expires_at && session.expires_at * 1000 > Date.now();
 
   return { session, user, isLoading, isAutenticado }
 }

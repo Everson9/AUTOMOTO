@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, View } from 'react-native';
-import { router, Stack } from 'expo-router';
+import { Redirect, Stack } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AuthProvider } from '../src/hooks/AuthProvider';
 import { useAuthContext } from '../src/hooks/AuthProvider';
@@ -13,6 +13,15 @@ export default function RootLayout() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <AuthProvider>
         <RootLayoutNav />
+        <Stack screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="(tabs)" />
+          <Stack.Screen name="login" />
+          <Stack.Screen name="cadastro" />
+          <Stack.Screen name="cadastrar-moto" />
+          <Stack.Screen name="perfil" />
+          <Stack.Screen name="onboarding" />
+          <Stack.Screen name="garagem" />
+        </Stack>
       </AuthProvider>
     </GestureHandlerRootView>
   );
@@ -20,46 +29,28 @@ export default function RootLayout() {
 
 function RootLayoutNav() {
   const { user, isLoading, isAutenticado } = useAuthContext();
-  const [onboardingChecked, setOnboardingChecked] = useState(false);
-  const [onboardingConcluido, setOnboardingConcluido] = useState(false);
+  const [onboardingConcluido, setOnboardingConcluido] = useState<boolean | null>(null);
 
-  // Verificar onboarding apenas após autenticação confirmada
+  // Verificar onboarding após autenticação confirmada
   useEffect(() => {
     if (isLoading) return;
+    if (!isAutenticado || !user) return;
 
-    if (!isAutenticado || !user) {
-      router.replace('/login');
-      return;
-    }
-
-    // Usuário autenticado - verificar se já viu o onboarding
     const checkOnboarding = async () => {
       try {
         const concluido = await AsyncStorage.getItem(ONBOARDING_KEY);
         setOnboardingConcluido(concluido === 'true');
-        setOnboardingChecked(true);
       } catch (error) {
         console.error('[RootLayoutNav] Erro ao verificar onboarding:', error);
         setOnboardingConcluido(false);
-        setOnboardingChecked(true);
       }
     };
 
     checkOnboarding();
-  }, [isAutenticado, user, isLoading]);
+  }, [isLoading, isAutenticado, user]);
 
-  // Navegar após verificar onboarding
-  useEffect(() => {
-    if (!onboardingChecked) return;
-
-    if (onboardingConcluido) {
-      router.replace('/(tabs)');
-    } else {
-      router.replace('/onboarding');
-    }
-  }, [onboardingChecked, onboardingConcluido]);
-
-  if (isLoading || !onboardingChecked) {
+  // Loading state - mostrar spinner
+  if (isLoading) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#0D0D0D' }}>
         <ActivityIndicator size="large" color="#F97316" />
@@ -67,14 +58,24 @@ function RootLayoutNav() {
     );
   }
 
-  return (
-    <Stack screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="(tabs)" />
-      <Stack.Screen name="login" />
-      <Stack.Screen name="cadastro" />
-      <Stack.Screen name="cadastrar-moto" />
-      <Stack.Screen name="perfil" />
-      <Stack.Screen name="onboarding" />
-    </Stack>
-  );
+  // Não autenticado - redirecionar para login
+  if (!isAutenticado || !user) {
+    return <Redirect href="/login" />;
+  }
+
+  // Autenticado mas onboarding ainda não verificado - mostrar spinner
+  if (onboardingConcluido === null) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#0D0D0D' }}>
+        <ActivityIndicator size="large" color="#F97316" />
+      </View>
+    );
+  }
+
+  // Autenticado - redirecionar baseado no onboarding
+  if (!onboardingConcluido) {
+    return <Redirect href="/onboarding" />;
+  }
+
+  return <Redirect href="/(tabs)" />;
 }
