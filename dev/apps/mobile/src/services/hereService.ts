@@ -206,12 +206,12 @@ export function decodeFlexPolyline(encoded: string): Coords[] {
 // ============================================================================
 
 /**
- * Busca incidentes de trânsito na área especificada usando HERE Traffic API v7.
+ * Busca incidentes de trânsito na área especificada usando HERE Traffic API v6.3.
  *
  * @param bbox - Bounding box da área visível no mapa
  * @returns Array de incidentes formatados
  *
- * @see https://developer.here.com/documentation/traffic-api/dev_guide/topics-v7/incident-data.html
+ * @see https://developer.here.com/documentation/traffic-api/dev_guide/topics/incident-data.html
  */
 export async function buscarIncidentes(bbox: BBox): Promise<IncidenteHERE[]> {
   if (!HERE_API_KEY) {
@@ -221,13 +221,11 @@ export async function buscarIncidentes(bbox: BBox): Promise<IncidenteHERE[]> {
 
   const { lat1, lng1, lat2, lng2 } = bbox;
 
-  // URL da API HERE Traffic v7 Incidents
-  // Formato bbox: lng1,lat1,lng2,lat2 (longitude primeiro!)
-  const url = new URL('https://data.traffic.hereapi.com/v7/incidents');
+  // HERE Traffic API v6.3 — formato: bbox:oeste,sul,leste,norte
+  const url = new URL('https://data.traffic.hereapi.com/traffic/6.3/incidents.json');
 
   url.searchParams.set('apiKey', HERE_API_KEY);
   url.searchParams.set('in', `bbox:${lng1},${lat1},${lng2},${lat2}`);
-  url.searchParams.set('locationReferencing', 'shape');
 
   try {
     const response = await fetch(url.toString());
@@ -240,57 +238,67 @@ export async function buscarIncidentes(bbox: BBox): Promise<IncidenteHERE[]> {
 
     const data = await response.json();
 
-    // HERE v7 retorna { results: [...] }
-    const items = data.results || [];
+    // HERE v6.3 retorna { incidents: [...] }
+    const items = data.incidents || [];
 
     const incidentes: IncidenteHERE[] = [];
 
     for (const item of items) {
-      // Mapear tipo do HERE v7 para nossos tipos
-      const incidentType = item.incidentDetails?.incidentType;
+      // Tipos HERE v6.3: ACCIDENT, ROAD_CLOSURE, CONSTRUCTION, WEATHER, MASS_TRANSIT
+      const tipoHERE = item.type;
       let tipo: TipoIncidenteHERE;
 
-      if (incidentType === 'accident' || incidentType?.includes('collision')) {
+      if (tipoHERE === 'ACCIDENT') {
         tipo = 'ACCIDENT';
-      } else if (incidentType === 'roadClosed' || incidentType?.includes('closure')) {
+      } else if (tipoHERE === 'ROAD_CLOSURE') {
         tipo = 'ROAD_CLOSURE';
-      } else if (incidentType === 'construction' || incidentType?.includes('roadWorks')) {
+      } else if (tipoHERE === 'CONSTRUCTION') {
         tipo = 'CONSTRUCTION';
       } else {
         // Ignorar tipos que não nos interessam
         continue;
       }
 
-      // Extrair localização do shape
-      const location = item.location?.shape;
-      if (!location?.coordinates || !Array.isArray(location.coordinates)) continue;
+      // Localização: HERE v6.3 usa location.shape ou location.lat/lng
+      let lat: number;
+      let lng: number;
 
-      // shape retorna LineString, pegar primeiro ponto
-      const coords = location.coordinates[0] as [number, number]; // [lng, lat]
-      if (!coords || coords.length < 2) continue;
-
-      const lng = coords[0];
-      const lat = coords[1];
+      if (item.location?.shape?.polyline) {
+        // polyline é array de [lat, lng, lat, lng, ...]
+        const polyline = item.location.shape.polyline;
+        if (polyline.length >= 2) {
+          lat = polyline[0];
+          lng = polyline[1];
+        } else {
+          continue;
+        }
+      } else if (item.location?.lat !== undefined && item.location?.lng !== undefined) {
+        lat = item.location.lat;
+        lng = item.location.lng;
+      } else {
+        continue;
+      }
 
       if (isNaN(lat) || isNaN(lng)) continue;
 
-      // Determinar severidade
-      const criticality = item.incidentDetails?.criticality || 'minor';
-      let severidade: 'critical' | 'major' | 'minor';
-      if (criticality === 'critical') {
-        severidade = 'critical';
-      } else if (criticality === 'major') {
-        severidade = 'major';
-      } else {
-        severidade = 'minor';
+      // Severidade: criticality pode ser string ou objeto
+      const criticality = item.criticality;
+      let severidade: 'critical' | 'major' | 'minor' = 'minor';
+      if (criticality === 'CRITICAL' || criticality === 'MAJOR') {
+        severidade = criticality === 'CRITICAL' ? 'critical' : 'major';
       }
+
+      // Descrição: TMC é o padrão, com description em多种 idiomas
+      const descricao = item.TMC?.description?.[0]?.text ||
+                       item.TMC?.description?.pt?.text ||
+                       INCIDENTE_HERE_CONFIG[tipo].label;
 
       incidentes.push({
         id: item.id || `here-${Date.now()}-${Math.random().toString(36).slice(2)}`,
         tipo,
         lat,
         lng,
-        descricao: item.incidentDetails?.description?.value || INCIDENTE_HERE_CONFIG[tipo].label,
+        descricao,
         severidade,
         origem: 'here',
       });

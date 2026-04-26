@@ -422,3 +422,42 @@ Integração completa da HERE Maps API para incidentes de trânsito em tempo rea
 - [x] Incidentes HERE renderizados no mapa (IncidenteMarker)
 - [ ] Navegação com rota funcional (polyline pendente)
 - [ ] Testado em Android físico
+
+---
+
+## 2026-04-26 — Correções Críticas + HERE Maps (continuação)
+
+### Resumo
+Correção de bugs críticos identificados na troca de celular e continuação da integração HERE Maps.
+
+### Fixes aplicados
+1. **Loop infinito no _layout.tsx**: `isLoading` estava alternando entre `true` e `false`, causando loop. Corrigido refatorando para padrão declarativo com `<Redirect>`.
+2. **useAuth.tsx com Date.now()**: UUID não existe em React Native, corrigido anteriormente mas revalidado na nova instalação.
+3. **Stack restaurado no RootLayout**: Stack de navegação restaurado para permitir navegação entre telas.
+4. **Troca de celular**: app funcionando no novo dispositivo após correções.
+
+### HERE Maps — avanços
+- `hereService.ts` criado com funções: `buscarIncidentes`, `buscarEndereco`, `calcularRota`
+- `useHereTraffic.ts` criado para polling de incidentes
+- `useNavegacao.ts` criado para estado da navegação
+- `IncidenteMarker` criado com badge azul "HERE"
+- `BuscaDestino` criado com autocompletar de endereço
+- `CardNavegacao` criado com destino, distância e ETA
+- `radar.tsx` integrado com HERE Maps
+- **Rota calculada**: distância e ETA funcionando corretamente
+
+### Pendências abertas
+- **Linha azul da rota**: GeoJSONSource/Layer configurado mas polyline não renderiza no mapa
+- **Incidentes HERE**: retornam 404 — endpoint pode estar com formato errado
+- **Stack.Screen name="garagem"**: warning persiste no _layout.tsx, precisa ser removido
+
+### Arquivos verificados/modificados
+- `app/_layout.tsx` — refatorado com `<Redirect>` para correção do loop infinito
+- `src/hooks/useAuth.tsx` — Date.now() verificado
+- `src/services/hereService.ts` — criado
+- `src/hooks/useHereTraffic.ts` — criado
+- `src/hooks/useNavegacao.ts` — criado
+- `src/components/IncidenteMarker/index.tsx` — criado
+- `src/components/BuscaDestino/index.tsx` — criado
+- `src/components/CardNavegacao/index.tsx` — criado
+- `app/(tabs)/radar.tsx` — integrado

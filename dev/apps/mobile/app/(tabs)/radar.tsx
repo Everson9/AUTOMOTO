@@ -1,4 +1,5 @@
-import { Map, Camera, GeoJSONSource, Layer, TransformRequestManager } from '@maplibre/maplibre-react-native';
+import { Map, Camera, TransformRequestManager } from '@maplibre/maplibre-react-native';
+import MapLibreGL from '@maplibre/maplibre-react-native';
 import { View, StyleSheet, Text, ActivityIndicator, Alert, TouchableOpacity, Animated } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useEffect, useState, useRef, useCallback, useMemo } from 'react';
@@ -327,21 +328,18 @@ export default function HomeScreen() {
         ))}
 
         {/* Rota de navegação */}
-        {rotaGeoJSON && navegacao.rota && (
-          <GeoJSONSource
-            id="rota-source"
-            data={rotaGeoJSON}
-          >
-            <Layer
+        {navegacao.rota && rotaGeoJSON && (
+          <MapLibreGL.ShapeSource id="rota-source" shape={rotaGeoJSON}>
+            <MapLibreGL.LineLayer
               id="rota-layer"
-              type="line"
-              paint={{
+              style={{
                 lineColor: '#2563EB',
                 lineWidth: 4,
-                lineOpacity: 0.8,
+                lineCap: 'round',
+                lineJoin: 'round',
               }}
             />
-          </GeoJSONSource>
+          </MapLibreGL.ShapeSource>
         )}
 
         {/* Heatmap de assaltos */}

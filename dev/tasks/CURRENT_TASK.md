@@ -2,7 +2,7 @@
 
 ---
 
-**Tarefa atual:** HERE Maps — corrigir linha da rota no mapa
+**Tarefa atual:** Finalizar HERE Maps — corrigir linha da rota no mapa
 **Módulo:** Radar
 **Fase:** Fase 1.5 — Polimento e UX, item 9
 
@@ -15,11 +15,15 @@
 ## Contexto necessário
 - `docs/modules/MODULE_RADAR.md` — ver seção "Estratégia de dados — modelo híbrido"
 - `EXPO_PUBLIC_HERE_API_KEY` configurada em `.env.local`
+- `apps/mobile/src/services/hereService.ts`
+- `apps/mobile/app/(tabs)/radar.tsx`
 
-## Pendência
-A função `calcularRota` retorna distância e ETA corretos, mas a linha azul da rota não está renderizando no mapa. O GeoJSONSource e LineLayer estão configurados em `radar.tsx`, mas a polyline não aparece visualmente.
+## Pendências abertas
+1. **Linha azul da rota não aparece no mapa** — GeoJSONSource/Layer configurado, polyline não renderiza
+2. **Incidentes HERE retornam 404** — endpoint pode estar com formato errado
+3. **Stack.Screen name="garagem"** — warning no _layout.tsx (deve ser removido)
 
-**Possíveis causas:**
+## Possíveis causas da polyline
 - GeoJSONSource não está recebendo as coordenadas corretamente
 - Coordenadas no formato errado (espera `[lng, lat]`)
 - LineLayer configurado incorretamente
@@ -42,6 +46,7 @@ A função `calcularRota` retorna distância e ETA corretos, mas a linha azul da
 
 | Data | Tarefa | Arquivos principais |
 |------|--------|---------------------|
+| 26/04/26 | HERE Maps integration (incidentes + navegação) | hereService.ts, useHereTraffic.ts, useNavegacao.ts |
 | 26/04/20 | HERE Maps integration (incidentes + navegação) | hereService.ts, useHereTraffic.ts, useNavegacao.ts |
 | 26/04/18 | Home contextual + tab bar 3 tabs | HomeScreen, useHome.ts |
 | 26/04/18 | Editar moto + upload de foto | EditarMotoScreen, storageService.ts |
